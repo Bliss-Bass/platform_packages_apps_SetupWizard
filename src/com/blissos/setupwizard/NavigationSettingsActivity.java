@@ -20,7 +20,7 @@ import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_2BUTTON_OVE
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON_OVERLAY;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_GESTURAL_OVERLAY;
 
-import static com.android.server.policy.HardkeyActionHandler.KEY_MASK_APP_SWITCH;
+// import static com.android.server.policy.HardkeyActionHandler.KEY_MASK_APP_SWITCH;
 import static com.blissos.setupwizard.SetupWizardApp.DISABLE_NAV_KEYS;
 import static com.blissos.setupwizard.SetupWizardApp.NAVIGATION_OPTION_KEY;
 
@@ -65,7 +65,7 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
         int deviceKeys = getResources().getInteger(
                 com.android.internal.R.integer.config_deviceHardwareKeys);
-        boolean hasHomeKey = (deviceKeys & KEY_MASK_APP_SWITCH) != 0;
+        // boolean hasHomeKey = (deviceKeys & KEY_MASK_APP_SWITCH) != 0;
 
         getGlifLayout().setDescriptionText(getString(R.string.navigation_summary));
         setNextText(R.string.next);
@@ -90,13 +90,13 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
 
         // Hide this page if the device has hardware keys but didn't enable navbar
-        // or if there's <= 1 available navigation modes
-        if (!navBarEnabled && hasHomeKey || available <= 1) {
-            mSetupWizardApp.getSettingsBundle().putString(NAVIGATION_OPTION_KEY,
-                    NAV_BAR_MODE_3BUTTON_OVERLAY);
-            Intent intent = WizardManagerHelper.getNextIntent(getIntent(), Activity.RESULT_OK);
-            finishAction(RESULT_OK, intent);
-        }
+        // // or if there's <= 1 available navigation modes
+        // if (!navBarEnabled && hasHomeKey || available <= 1) {
+        //     mSetupWizardApp.getSettingsBundle().putString(NAVIGATION_OPTION_KEY,
+        //             NAV_BAR_MODE_3BUTTON_OVERLAY);
+        //     Intent intent = WizardManagerHelper.getNextIntent(getIntent(), Activity.RESULT_OK);
+        //     finishAction(RESULT_OK, intent);
+        // }
 
         final LottieAnimationView navigationIllustration =
                 findViewById(R.id.navigation_illustration);
