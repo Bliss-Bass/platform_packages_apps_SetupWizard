@@ -58,6 +58,7 @@
                  android:icon="@mipmap/ic_launcher"
                  android:theme="@style/Theme.Setup"
                  android:uiOptions="none"
+                 android:resizeableActivity="false"
                  android:taskAffinity="com.android.wizard"
                  android:name=".SetupWizardApp">
 
@@ -84,6 +85,7 @@
                   android:excludeFromRecents="true"
                   android:configChanges="keyboard|keyboardHidden|mcc|mnc|orientation|screenSize"
                   android:immersive="true"
+                  android:resizeableActivity="false"
                   android:exported="true"
                   android:windowSoftInputMode="stateAlwaysHidden"
                   android:theme="@style/NoDisplay">
@@ -320,6 +322,7 @@
                   android:configChanges="keyboard|keyboardHidden|mcc|mnc|orientation|screenSize"
                   android:exported="false"
                   android:immersive="true"
+                  android:resizeableActivity="false"
                   android:label="@string/activity_label_empty"
                   android:launchMode="singleInstance"
                   android:theme="@style/NoDisplay"/>
