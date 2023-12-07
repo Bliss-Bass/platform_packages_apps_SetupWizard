@@ -48,6 +48,10 @@
 
     <style name="NoDisplay" parent="@android:style/Theme.NoDisplay" />
 
+    <style name="Black" parent="@android:style/Theme.Black" />
+    
+    <style name="Default" parent="@android:style/Theme" />
+
     <style name="WelcomeTitle">
         <item name="android:textSize">@dimen/welcome_title_text_size</item>
         <item name="android:textColor">?android:textColorPrimary</item>
