@@ -61,6 +61,12 @@
                  android:resizeableActivity="false"
                  android:taskAffinity="com.android.wizard"
                  android:name=".SetupWizardApp">
+        
+        <meta-data android:name="WindowManagerPreference:FreeformWindowSize"
+                   android:value="tablet" />
+
+        <meta-data android:name="WindowManagerPreference:FreeformWindowOrientation"
+                   android:value="landscape" />
 
 
         <activity android:theme="@style/NoDisplay"
