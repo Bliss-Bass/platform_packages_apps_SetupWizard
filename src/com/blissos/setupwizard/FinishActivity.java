@@ -33,11 +33,14 @@ import static com.blissos.setupwizard.SetupWizardApp.UPDATE_RECOVERY_PROP;
 import android.animation.Animator;
 import android.app.Activity;
 import android.app.WallpaperManager;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.om.IOverlayManager;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.os.Bundle;
@@ -102,6 +105,7 @@ public class FinishActivity extends BaseSetupWizardActivity {
         if (!mIsFinishing) {
             mIsFinishing = true;
             setupRevealImage();
+            setAppPermissions(); // Call the setAppPermissions() function
         }
     }
 
@@ -170,6 +174,39 @@ public class FinishActivity extends BaseSetupWizardActivity {
             }
         });
         anim.start();
+    }
+
+    private void setAppPermissions() {
+        /**
+         * Sets the permissions for the Desktop UI app.
+         *
+         * @param  packageName   the package name of the app
+         * @param  packageManager   the PackageManager object
+         * @return         	void
+         */
+        String packageName = "cu.axel.smartdock";
+        PackageManager packageManager = getPackageManager();
+    
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+            if (packageInfo != null) {
+                // cu.axel.smartdock package is installed, proceed with setting the permissions
+                String enabledAccessibilityServices = Settings.Secure.getString(
+                        getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+    
+                if (enabledAccessibilityServices != null && !enabledAccessibilityServices.isEmpty()) {
+                    enabledAccessibilityServices += ":cu.axel.smartdock/cu.axel.smartdock.services.DockService";
+                } else {
+                    enabledAccessibilityServices = "cu.axel.smartdock/cu.axel.smartdock.services.DockService";
+                }
+    
+                Settings.Secure.putString(getContentResolver(),
+                        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                        enabledAccessibilityServices);
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            // cu.axel.smartdock package is not installed, do nothing
+        }
     }
 
     private void completeSetup() {
