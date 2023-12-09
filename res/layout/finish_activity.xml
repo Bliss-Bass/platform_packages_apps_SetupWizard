@@ -15,41 +15,38 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<com.blissos.setupwizard.widget.ScrimInsetsFrameLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
-    app:insetForeground="@android:color/transparent">
+    android:orientation="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        style="@style/SudContentFrame">
+        android:orientation="vertical">
 
         <ImageView
             android:id="@+id/brand_logo"
             android:layout_width="match_parent"
             android:layout_height="0px"
             android:layout_weight="1"
-            android:src="@drawable/logo"
             android:adjustViewBounds="true"
-            android:scaleType="fitCenter"
             android:gravity="center"
-            android:padding="@dimen/content_margin_left"/>
+            android:padding="@dimen/content_margin_left"
+            android:scaleType="fitCenter"
+            android:src="@drawable/logo" />
 
         <TextView
-            style="@style/WelcomeTitle"
             android:id="@+id/bliss_motto"
+            style="@style/WelcomeTitle"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:text="@string/bliss_motto_message"
-            android:hyphenationFrequency="none"/>
+            android:hyphenationFrequency="none"
+            android:text="@string/bliss_motto_message" />
 
         <com.blissos.setupwizard.NavigationLayout
             android:id="@+id/navigation_bar"
@@ -63,6 +60,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@drawable/reveal"
-        android:visibility="invisible"/>
+        android:visibility="invisible" />
 
-</com.blissos.setupwizard.widget.ScrimInsetsFrameLayout>
+</RelativeLayout>
