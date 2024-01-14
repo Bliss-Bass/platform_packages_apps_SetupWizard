@@ -16,13 +16,15 @@
 
 package com.blissos.setupwizard;
 
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_2BUTTON;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_2BUTTON_OVERLAY;
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON_OVERLAY;
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_GESTURAL;
 import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_GESTURAL_OVERLAY;
 
 import static com.android.systemui.shared.recents.utilities.Utilities.isLargeScreen;
 
-import static com.android.internal.util.libremobileos.DeviceKeysConstants.KEY_MASK_APP_SWITCH;
 import static com.blissos.setupwizard.SetupWizardApp.DISABLE_NAV_KEYS;
 import static com.blissos.setupwizard.SetupWizardApp.NAVIGATION_OPTION_KEY;
 
@@ -30,15 +32,23 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.om.IOverlayManager;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.os.UserHandle;
+import android.os.ServiceManager;
 import android.provider.Settings;
 import android.content.Context;
 import android.view.View;
 import android.widget.CheckBox;
+import android.view.Display;
+import android.view.DisplayInfo;
+import android.view.IWindowManager;
+import android.view.WindowManagerGlobal;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RadioGroup.OnCheckedChangeListener;
+import android.util.Log;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.setupcompat.util.WizardManagerHelper;
@@ -71,7 +81,6 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
         int deviceKeys = getResources().getInteger(
                 com.android.internal.R.integer.config_deviceHardwareKeys);
-        // boolean hasHomeKey = (deviceKeys & KEY_MASK_APP_SWITCH) != 0;
 
         getGlifLayout().setDescriptionText(getString(R.string.navigation_summary));
         setNextText(R.string.next);
