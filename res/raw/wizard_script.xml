@@ -115,9 +115,6 @@
         <result wizard:action="rom_settings" />
     </WizardAction>
     <WizardAction wizard:uri="intent:#Intent;action=com.blissos.setupwizard.ROM_SETTINGS;end" id="rom_settings">
-        <result wizard:action="navigation_settings" />
-    </WizardAction>
-    <WizardAction wizard:uri="intent:#Intent;action=com.blissos.setupwizard.NAVIGATION_SETTINGS;end" id="navigation_settings">
         <result wizard:action="restore" />
     </WizardAction>
     <WizardAction wizard:uri="intent:#Intent;action=com.blissos.setupwizard.LINEAGE_RESTORE_BACKUP;end" id="restore">
