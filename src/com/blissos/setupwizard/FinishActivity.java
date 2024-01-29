@@ -18,6 +18,9 @@
 package com.blissos.setupwizard;
 
 import static android.os.Binder.getCallingUserHandle;
+import static android.os.UserHandle.USER_CURRENT;
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_3BUTTON_OVERLAY;
+import static android.view.WindowManagerPolicyConstants.NAV_BAR_MODE_GESTURAL_OVERLAY;
 
 import static com.blissos.setupwizard.Manifest.permission.FINISH_SETUP;
 import static com.blissos.setupwizard.SetupWizardApp.ACTION_SETUP_COMPLETE;
@@ -38,8 +41,10 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.content.om.IOverlayManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.ServiceManager;
 import android.os.SystemProperties;
 import android.os.UserHandle;
 import android.preference.PreferenceManager;
