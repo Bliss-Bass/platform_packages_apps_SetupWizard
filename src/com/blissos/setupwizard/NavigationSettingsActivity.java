@@ -49,7 +49,7 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
     private SetupWizardApp mSetupWizardApp;
 
-    private String mSelection = NAV_BAR_MODE_GESTURAL_OVERLAY;
+    private String mSelection = NAV_BAR_MODE_3BUTTON_OVERLAY;
 
     private CheckBox mHideGesturalHint;
 
