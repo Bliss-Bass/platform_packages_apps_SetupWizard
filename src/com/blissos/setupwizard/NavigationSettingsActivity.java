@@ -49,7 +49,7 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
 
     private SetupWizardApp mSetupWizardApp;
 
-    private String mSelection = NAV_BAR_MODE_GESTURAL_OVERLAY;
+    private String mSelection = NAV_BAR_MODE_3BUTTON_OVERLAY;
 
     private CheckBox mHideGesturalHint;
 
@@ -106,22 +106,22 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
-                case R.id.radio_gesture:
-                    mSelection = NAV_BAR_MODE_GESTURAL_OVERLAY;
-                    navigationIllustration
-                            .setAnimation(R.raw.lottie_system_nav_fully_gestural);
-                    revealHintCheckbox();
-                    break;
-                case R.id.radio_two_button:
-                    mSelection = NAV_BAR_MODE_2BUTTON_OVERLAY;
-                    navigationIllustration.setAnimation(R.raw.lottie_system_nav_2_button);
-                    hideHintCheckBox();
-                    break;
-                case R.id.radio_sw_keys:
-                    mSelection = NAV_BAR_MODE_3BUTTON_OVERLAY;
-                    navigationIllustration.setAnimation(R.raw.lottie_system_nav_3_button);
-                    hideHintCheckBox();
-                    break;
+                    case R.id.radio_sw_keys:
+                        mSelection = NAV_BAR_MODE_3BUTTON_OVERLAY;
+                        navigationIllustration.setAnimation(R.raw.lottie_system_nav_3_button);
+                        hideHintCheckBox();
+                        break;
+                    case R.id.radio_two_button:
+                        mSelection = NAV_BAR_MODE_2BUTTON_OVERLAY;
+                        navigationIllustration.setAnimation(R.raw.lottie_system_nav_2_button);
+                        hideHintCheckBox();
+                        break;
+                    case R.id.radio_gesture:
+                        mSelection = NAV_BAR_MODE_GESTURAL_OVERLAY;
+                        navigationIllustration
+                                .setAnimation(R.raw.lottie_system_nav_fully_gestural);
+                        revealHintCheckbox();
+                        break;
                 }
 
                 navigationIllustration.playAnimation();
@@ -139,9 +139,9 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
         mHideGesturalHint.setVisibility(View.VISIBLE);
         mHideGesturalHint.setAlpha(0.0f);
         mHideGesturalHint.animate()
-            .translationY(0)
-            .alpha(1.0f)
-            .setListener(null);
+                .translationY(0)
+                .alpha(1.0f)
+                .setListener(null);
     }
 
     private void hideHintCheckBox() {
@@ -150,15 +150,15 @@ public class NavigationSettingsActivity extends BaseSetupWizardActivity {
         }
 
         mHideGesturalHint.animate()
-            .translationY(-mHideGesturalHint.getHeight())
-            .alpha(0.0f)
-            .setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    super.onAnimationEnd(animation);
-                    mHideGesturalHint.setVisibility(View.INVISIBLE);
-                }
-            });
+                .translationY(-mHideGesturalHint.getHeight())
+                .alpha(0.0f)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        mHideGesturalHint.setVisibility(View.INVISIBLE);
+                    }
+                });
     }
 
     @Override

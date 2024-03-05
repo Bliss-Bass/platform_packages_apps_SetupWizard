@@ -1,5 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
-<!--
+<?xml version="1.0" encoding="utf-8"?><!--
      Copyright (C) 2022 The LineageOS Project
 
      Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,19 +13,18 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<com.google.android.setupdesign.GlifLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.setupdesign.GlifLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/setup_wizard_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:orientation="vertical"
+        style="@style/SudContentFrame"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        style="@style/SudContentFrame"
-        android:layout_marginTop="@dimen/base_margin_top">
+        android:layout_marginTop="@dimen/base_margin_top"
+        android:orientation="vertical">
 
         <FrameLayout
             android:id="@+id/page"
@@ -40,17 +38,17 @@
                 android:fillViewport="true">
 
                 <LinearLayout
-                    android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent">
+                    android:layout_height="match_parent"
+                    android:orientation="vertical">
 
-                <com.airbnb.lottie.LottieAnimationView
-                    android:id="@+id/navigation_illustration"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:lottie_rawRes="@raw/lottie_system_nav_fully_gestural"
-                    app:lottie_autoPlay="true"
-                    app:lottie_loop="true" />
+                    <com.airbnb.lottie.LottieAnimationView
+                        android:id="@+id/navigation_illustration"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:lottie_autoPlay="true"
+                        app:lottie_loop="true"
+                        app:lottie_rawRes="@raw/lottie_system_nav_fully_gestural" />
 
                     <RadioGroup
                         android:id="@+id/navigation_radio_group"
@@ -58,33 +56,33 @@
                         android:layout_height="wrap_content">
 
                         <RadioButton
-                            android:id="@+id/radio_gesture"
-                            android:text="@string/gesture_navigation"
+                            android:id="@+id/radio_sw_keys"
+                            style="@style/SudRadioButton"
                             android:checked="true"
-                            style="@style/SudRadioButton" />
+                            android:text="@string/navbar_navigation" />
 
                         <RadioButton
                             android:id="@+id/radio_two_button"
-                            android:text="@string/two_button_navigation"
-                            style="@style/SudRadioButton" />
+                            style="@style/SudRadioButton"
+                            android:text="@string/two_button_navigation" />
 
                         <RadioButton
-                            android:id="@+id/radio_sw_keys"
-                            android:text="@string/navbar_navigation"
-                            style="@style/SudRadioButton" />
+                            android:id="@+id/radio_gesture"
+                            style="@style/SudRadioButton"
+                            android:text="@string/gesture_navigation" />
 
                     </RadioGroup>
 
                     <CheckBox
                         android:id="@+id/hide_navigation_hint"
+                        style="@style/SudCheckBox"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/hide_gesture_hint"
+                        android:layout_marginLeft="-6dp"
                         android:layout_marginTop="0dp"
                         android:layout_marginBottom="6dp"
-                        android:layout_marginLeft="-6dp"
                         android:paddingLeft="18dp"
-                        style="@style/SudCheckBox" />
+                        android:text="@string/hide_gesture_hint" />
                 </LinearLayout>
             </ScrollView>
         </FrameLayout>
