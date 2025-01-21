@@ -5,6 +5,7 @@ import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -204,6 +205,39 @@ public class MainActivity extends FragmentActivity {
         }
     }
 
+    private void setAppPermissions() {
+        /**
+         * Sets the permissions for the Desktop UI app.
+         *
+         * @param  packageName   the package name of the app
+         * @param  packageManager   the PackageManager object
+         * @return         	void
+         */
+        String packageName = "cu.axel.smartdock";
+        PackageManager packageManager = getPackageManager();
+    
+        try {
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, 0);
+            if (packageInfo != null) {
+                // cu.axel.smartdock package is installed, proceed with setting the permissions
+                String enabledAccessibilityServices = Settings.Secure.getString(
+                        getContentResolver(), Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES);
+    
+                if (enabledAccessibilityServices != null && !enabledAccessibilityServices.isEmpty()) {
+                    enabledAccessibilityServices += ":cu.axel.smartdock/cu.axel.smartdock.services.DockService";
+                } else {
+                    enabledAccessibilityServices = "cu.axel.smartdock/cu.axel.smartdock.services.DockService";
+                }
+    
+                Settings.Secure.putString(getContentResolver(),
+                        Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES,
+                        enabledAccessibilityServices);
+            }
+        } catch (PackageManager.NameNotFoundException e) {
+            // cu.axel.smartdock package is not installed, do nothing
+        }
+    }
+
     @Override
     public void finish() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
@@ -214,6 +248,7 @@ public class MainActivity extends FragmentActivity {
 
     public void finishSetup() {
         disableComponent();
+        setAppPermissions(); // Call the setAppPermissions() function
         super.finish();
     }
 
