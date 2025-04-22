@@ -86,7 +86,7 @@ public class LocalFragment extends BaseGuideStepFragment {
 
     @Override
     public void onNextAction() {
-        GuidedStepSupportFragment.add(getParentFragmentManager(), new NetworkFragment());
+        GuidedStepSupportFragment.add(getParentFragmentManager(), new NavigationFragment());
     }
 
     @Override
