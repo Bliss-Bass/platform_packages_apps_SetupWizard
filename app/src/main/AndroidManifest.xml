@@ -34,6 +34,13 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.SetupWizard">
 
+        <service
+            android:name=".services.MessengerService"
+            android:enabled="true"
+            android:exported="true"
+            android:permission="android.permission.CHANGE_CONFIGURATION"
+            />
+
         <activity
             android:name=".MainActivity"
             android:excludeFromRecents="true"
@@ -60,7 +67,6 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </receiver>
-
     </application>
 
 </manifest>

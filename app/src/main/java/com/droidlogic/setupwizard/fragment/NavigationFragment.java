@@ -117,13 +117,13 @@ public class NavigationFragment extends BaseGuideStepFragment {
         try {
             switch ((int) action.getId()) {
                 case NAV_BAR_MODE_3BUTTON:
-                    Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.threebutton");
+                    setThreeButtonNavigation();
                     break;
                 case NAV_BAR_MODE_2BUTTON:
-                    Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.twobutton");
+                    setTwoButtonNavigation();
                     break;
                 case NAV_BAR_MODE_GESTURAL:
-                    Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.gestural");
+                    setGestureNavigation();
                     break;
             }
             if (currentGuidedAction != null) {
@@ -135,6 +135,18 @@ public class NavigationFragment extends BaseGuideStepFragment {
             throw new RuntimeException(e);
         }
         return super.onSubGuidedActionClicked(action);
+    }
+
+    public static void setGestureNavigation() throws IOException {
+        Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.gestural");
+    }
+
+    public static void setTwoButtonNavigation() throws IOException {
+        Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.twobutton");
+    }
+
+    public static void setThreeButtonNavigation() throws IOException {
+        Runtime.getRuntime().exec("cmd overlay enable com.android.internal.systemui.navbar.threebutton");
     }
 
 }
