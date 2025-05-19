@@ -247,20 +247,35 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void finishSetup() {
-        disableComponent();
+        disableComponent(this);
         setAppPermissions(); // Call the setAppPermissions() function
         super.finish();
     }
 
-    private void disableComponent() {
+    public static void disableComponent(Context context) {
         new Thread(() -> {
             try {
-                ContentResolver contentResolver = getContentResolver();
+                ContentResolver contentResolver = context.getContentResolver();
                 Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
                 Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
-                PackageManager pm = getPackageManager();
-                ComponentName name = new ComponentName(MainActivity.this, MainActivity.class);
+                PackageManager pm = context.getPackageManager();
+                ComponentName name = new ComponentName(context, MainActivity.class);
                 pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
+    public static void enableComponent(Context context) {
+        new Thread(() -> {
+            try {
+                ContentResolver contentResolver = context.getContentResolver();
+                Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 0);
+                Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 0);
+                PackageManager pm = context.getPackageManager();
+                ComponentName name = new ComponentName(context, MainActivity.class);
+                pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
             } catch (Exception e) {
                 e.printStackTrace();
             }

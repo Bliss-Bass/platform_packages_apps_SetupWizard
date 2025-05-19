@@ -18,6 +18,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.android.internal.app.LocalePicker;
+import com.droidlogic.setupwizard.MainActivity;
 
 import java.io.IOException;
 import java.lang.ref.WeakReference;
@@ -37,6 +38,7 @@ public class MessengerService extends Service {
     static final int MSG_CHANGE_DATE_AND_TIME = 2;
     static final int MSG_CHANGE_LANGUAGE = 3;
     static final int MSG_CHANGE_TIME_ZONE = 4;
+    static final int MSG_OVERRIDE_SETUP_COMPLETE = 5;
 
 
     /**
@@ -78,6 +80,12 @@ public class MessengerService extends Service {
                     if (msg.obj instanceof LocaleList) {
                         LocalePicker.updateLocales((LocaleList) msg.obj);
                     }
+                    break;
+
+                case MSG_OVERRIDE_SETUP_COMPLETE:
+                    if (context.get() != null)
+                        if (msg.arg1 == 1) MainActivity.enableComponent(context.get());
+                        else if (msg.arg1 == 0) MainActivity.disableComponent(context.get());
                     break;
 
                 default:
