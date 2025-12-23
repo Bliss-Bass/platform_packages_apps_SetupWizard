@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.TypedValue;
 import android.view.View;
 import android.widget.Toast;
 
@@ -88,16 +89,30 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
         super.onViewCreated(view, savedInstanceState);
         try {
             VerticalGridView verticalGridView = getGuidedActionsStylist().getActionsGridView();
-            RecyclerView.LayoutManager layoutManager = verticalGridView.getLayoutManager();
-            Class cls = Class.forName("androidx.leanback.widget.GridLayoutManager");
-            Method method;
-            try {
-                method = cls.getMethod("setFocusOutAllowed", boolean.class, boolean.class);
-            } catch (NoSuchMethodException e) {
-                method = cls.getDeclaredMethod("setFocusOutAllowed", boolean.class, boolean.class);
-                method.setAccessible(true);
+            if (verticalGridView != null) {
+                // Add bottom padding to lift the actions list above the navbar
+                int bottomPadding = (int) TypedValue.applyDimension(
+                        TypedValue.COMPLEX_UNIT_DIP, 86, getResources().getDisplayMetrics());
+                verticalGridView.setPadding(
+                        verticalGridView.getPaddingLeft(),
+                        verticalGridView.getPaddingTop(),
+                        verticalGridView.getPaddingRight(),
+                        bottomPadding
+                );
+                verticalGridView.setClipToPadding(false);
+
+                // Existing reflection code
+                RecyclerView.LayoutManager layoutManager = verticalGridView.getLayoutManager();
+                Class cls = Class.forName("androidx.leanback.widget.GridLayoutManager");
+                Method method;
+                try {
+                    method = cls.getMethod("setFocusOutAllowed", boolean.class, boolean.class);
+                } catch (NoSuchMethodException e) {
+                    method = cls.getDeclaredMethod("setFocusOutAllowed", boolean.class, boolean.class);
+                    method.setAccessible(true);
+                }
+                method.invoke(layoutManager, true, true);
             }
-            method.invoke(layoutManager, true, true);
         } catch (Exception e) {
             e.printStackTrace();
         }
