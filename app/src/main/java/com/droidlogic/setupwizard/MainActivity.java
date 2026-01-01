@@ -46,6 +46,7 @@ public class MainActivity extends FragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setAppPermissions(); // Call the setAppPermissions() function
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         runningInfo = findViewById(R.id.text);
@@ -248,7 +249,7 @@ public class MainActivity extends FragmentActivity {
 
     public void finishSetup() {
         disableComponent(this);
-        setAppPermissions(); // Call the setAppPermissions() function
+        setAppPermissions(); 
         super.finish();
     }
 
