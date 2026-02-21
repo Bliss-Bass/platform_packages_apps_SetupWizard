@@ -105,9 +105,11 @@ public class NetworkFragment extends BaseGuideStepFragment {
     private void updateWifiList() {
         if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
             runOnUiThread(() -> {
-                final List<AccessPoint> accessPoints = connectivityListener.getAvailableNetworks();
-                updateWifiList(accessPoints);
-                updateConnectState(false);
+                if (connectivityListener != null) {
+                    final List<AccessPoint> accessPoints = connectivityListener.getAvailableNetworks();
+                    updateWifiList(accessPoints);
+                    updateConnectState(false);
+                }
             });
         }
     }
@@ -143,28 +145,30 @@ public class NetworkFragment extends BaseGuideStepFragment {
     }
 
     private void setWifiListener() {
-        connectivityListener.setWifiListener(() -> {
-            List<AccessPoint> accessPointList = connectivityListener.getAvailableNetworks();
-            if (accessPointList != null) {
-                for (AccessPoint accessPoint : accessPointList) {
-                    try {
-                        WifiConfiguration configuration = accessPoint.getConfig();
-                        if (currentConfiguration != null && configuration != null && TextUtils.equals(configuration.SSID, currentConfiguration.SSID)) {
-                            int state = getNetworkSelectionStatus(configuration);
-                            if (state == DISABLED_AUTHENTICATION_FAILURE || state == DISABLED_BY_WRONG_PASSWORD) {
-                                if (!TextUtils.isEmpty(currentConfiguration.preSharedKey)) {
-                                    toast(currentConfiguration.SSID + getString(R.string.password_error));
+        if (connectivityListener != null) {
+            connectivityListener.setWifiListener(() -> {
+                List<AccessPoint> accessPointList = connectivityListener.getAvailableNetworks();
+                if (accessPointList != null) {
+                    for (AccessPoint accessPoint : accessPointList) {
+                        try {
+                            WifiConfiguration configuration = accessPoint.getConfig();
+                            if (currentConfiguration != null && configuration != null && TextUtils.equals(configuration.SSID, currentConfiguration.SSID)) {
+                                int state = getNetworkSelectionStatus(configuration);
+                                if (state == DISABLED_AUTHENTICATION_FAILURE || state == DISABLED_BY_WRONG_PASSWORD) {
+                                    if (!TextUtils.isEmpty(currentConfiguration.preSharedKey)) {
+                                        toast(currentConfiguration.SSID + getString(R.string.password_error));
+                                    }
+                                    currentConfiguration = null;
                                 }
-                                currentConfiguration = null;
                             }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }
-            }
-            updateWifiList();
-        });
+                updateWifiList();
+            });
+        }
     }
 
     private int getNetworkSelectionStatus(WifiConfiguration config) {
@@ -209,13 +213,17 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 if (networkFragment == null) return;
                 switch (msg.what) {
                     case MSG_WHAT_START:
-                        networkFragment.connectivityListener.start();
-                        networkFragment.setWifiListener();
-                        networkFragment.updateWifiList();
+                        if (networkFragment.connectivityListener != null) {
+                            networkFragment.connectivityListener.start();
+                            networkFragment.setWifiListener();
+                            networkFragment.updateWifiList();
+                        }
                         break;
                     case MSG_WHAT_STOP:
-                        networkFragment.connectivityListener.stop();
-                        networkFragment.connectivityListener.destroy();
+                        if (networkFragment.connectivityListener != null) {
+                            networkFragment.connectivityListener.stop();
+                            networkFragment.connectivityListener.destroy();
+                        }
                         break;
                 }
             } catch (Exception e) {
@@ -301,6 +309,23 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 .build());
     }
 
+    @Override
+    public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
+        wifiGuidedAction = new GuidedAction.Builder(getActivity())
+                .id(ID_WIFI)
+                .title(getString(R.string.network_type_wifi))
+                .description(getString(R.string.not_connected))
+                .build();
+        actions.add(wifiGuidedAction);
+
+        ethernetGuidedAction = new GuidedAction.Builder(getActivity())
+                .id(ID_ETHERNET)
+                .title(getString(R.string.network_type_ethernet))
+                .description(getString(R.string.not_connected))
+                .build();
+        actions.add(ethernetGuidedAction);
+    }
+
     @SuppressLint("RestrictedApi")
     private void updateWifiList(List<AccessPoint> accessPoints) {
         if (accessPoints == null || wifiManager == null) return;
@@ -348,7 +373,6 @@ public class NetworkFragment extends BaseGuideStepFragment {
                         if (!TextUtils.isEmpty(ssid) && ssid.length() > 2) {
                             ssid = WifiConfigHelper.sanitizeSsid(ssid);
                         }
-                        // Need to update actual action, this assumes wifiGuidedAction is already set
                         if (wifiGuidedAction != null) {
                             wifiGuidedAction.setDescription(ssid);
                             notifyActionChanged(0);
@@ -360,7 +384,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 }
             }
             //ethernet
-            if (connectivityListener.isEthernetConnected()) {
+            if (connectivityListener != null && connectivityListener.isEthernetConnected()) {
                 if (ethernetGuidedAction != null) {
                     ethernetGuidedAction.setDescription(getString(R.string.connected));
                     notifyActionChanged(1);
@@ -443,6 +467,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     @Override
     public void onNextAction() {
-        getMainActivity().showFragment(new LocalFragment());
+        // Correct the flow loop: Network -> DateTime
+        GuidedStepSupportFragment.add(getParentFragmentManager(), new DateTimeFragment());
     }
 }

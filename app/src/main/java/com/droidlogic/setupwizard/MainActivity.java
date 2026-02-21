@@ -12,9 +12,12 @@ import android.content.pm.PackageManager;
 import android.graphics.drawable.GradientDrawable;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.Settings;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
@@ -22,7 +25,6 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
 import com.droidlogic.setupwizard.fragment.BaseGuideStepFragment;
@@ -55,7 +57,14 @@ public class MainActivity extends FragmentActivity {
     private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
 
     private static final String USER_SETUP_COMPLETE = "user_setup_complete";
+    
+    // Debug Escape Logic
+    private int cornerClickCount = 0;
+    private long lastCornerClickTime = 0;
+    private final Handler debugHandler = new Handler(Looper.getMainLooper());
+    private final Runnable longPressRunnable = this::showEscapeDialog;
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         setAppPermissions();
@@ -77,9 +86,7 @@ public class MainActivity extends FragmentActivity {
             return;
         }
         
-        getSupportFragmentManager().addOnBackStackChangedListener(() -> {
-            updatePageVisuals();
-        });
+        getSupportFragmentManager().addOnBackStackChangedListener(this::updatePageVisuals);
 
         if (null == savedInstanceState) {
             GuidedStepSupportFragment.addAsRoot(this, new LocalFragment(), android.R.id.content);
@@ -102,6 +109,40 @@ public class MainActivity extends FragmentActivity {
         mainRoot.post(() -> {
             mainRoot.addView(viNextAction);
             mainRoot.addView(viWifiFloat);
+            viNextAction.bringToFront();
+            viWifiFloat.bringToFront();
+        });
+
+        // Touch-based Debug Escape Logic
+        mainRoot.setOnTouchListener((v, event) -> {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                // Check if touch is in top-left corner (e.g., 100x100 dp area)
+                float x = event.getX();
+                float y = event.getY();
+                if (x < 200 && y < 200) {
+                    long currentTime = System.currentTimeMillis();
+                    if (currentTime - lastCornerClickTime < 1000) {
+                        cornerClickCount++;
+                    } else {
+                        cornerClickCount = 1;
+                    }
+                    lastCornerClickTime = currentTime;
+
+                    if (cornerClickCount == 3) {
+                        // Start 5-second long press detection
+                        debugHandler.postDelayed(longPressRunnable, 5000);
+                    }
+                } else {
+                    cornerClickCount = 0;
+                    debugHandler.removeCallbacks(longPressRunnable);
+                }
+            } else if (event.getAction() == MotionEvent.ACTION_UP || event.getAction() == MotionEvent.ACTION_CANCEL) {
+                if (cornerClickCount < 3) {
+                    cornerClickCount = 0;
+                }
+                debugHandler.removeCallbacks(longPressRunnable);
+            }
+            return false;
         });
     }
 
@@ -115,11 +156,14 @@ public class MainActivity extends FragmentActivity {
         else if (topFragment instanceof DisplaySettingsFragment) colorIndex = 4;
         
         animateBackgroundColor(pageColors[colorIndex % pageColors.length]);
+        
+        if (viNextAction != null) viNextAction.bringToFront();
+        if (viWifiFloat != null) viWifiFloat.bringToFront();
     }
 
     private void animateBackgroundColor(int targetColor) {
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), currentBackgroundColor, targetColor);
-        colorAnimation.setDuration(2000); // Slow 2 second transition
+        colorAnimation.setDuration(2000); 
         colorAnimation.addUpdateListener(animator -> {
             int color = (int) animator.getAnimatedValue();
             updateBackground(color);
@@ -208,20 +252,25 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void actionNextVisible() {
-        viNextAction.setVisibility(View.VISIBLE);
+        if (viNextAction != null) {
+            viNextAction.setVisibility(View.VISIBLE);
+            viNextAction.bringToFront();
+        }
     }
 
     public void actionNextInvisible() {
-        viNextAction.setVisibility(View.INVISIBLE);
+        if (viNextAction != null) viNextAction.setVisibility(View.INVISIBLE);
     }
 
     public void nextActionBringToFront() {
-        viNextAction.bringToFront();
+        if (viNextAction != null) viNextAction.bringToFront();
     }
 
     public void setNextActionText(String text) {
-        TextView tvNext = viNextAction.findViewById(R.id.tv_next_action);
-        if (tvNext != null) tvNext.setText(text);
+        if (viNextAction != null) {
+            TextView tvNext = viNextAction.findViewById(R.id.tv_next_action);
+            if (tvNext != null) tvNext.setText(text);
+        }
     }
 
     private final Backdoor backdoor = new Backdoor();
@@ -230,17 +279,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         if (backdoor.input(event)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.dialog_skip_title)
-                    .setMessage(R.string.dialog_skip_notice)
-                    .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
-                        dialog.dismiss();
-                        setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
-                        finishSetup();
-                    })
-                    .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> dialog.dismiss())
-                    .create()
-                    .show();
+            showEscapeDialog();
             return true;
         }
         for (int keyCode : forbiddenKey) {
@@ -249,9 +288,26 @@ public class MainActivity extends FragmentActivity {
             }
         }
         if (event.getAction() == KeyEvent.ACTION_UP && event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
-            viNextAction.postDelayed(this::actionNextVisible, 50);
+            if (viNextAction != null) viNextAction.postDelayed(this::actionNextVisible, 50);
         }
         return super.dispatchKeyEvent(event);
+    }
+
+    private void showEscapeDialog() {
+        runOnUiThread(() -> new AlertDialog.Builder(this)
+                .setTitle(R.string.dialog_skip_title)
+                .setMessage(R.string.dialog_skip_notice)
+                .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
+                    dialog.dismiss();
+                    setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+                    finishSetup();
+                })
+                .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> {
+                    dialog.dismiss();
+                    cornerClickCount = 0;
+                })
+                .create()
+                .show());
     }
 
     private void setHdmiCecComponentEnabled(int state) {

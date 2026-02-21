@@ -12,11 +12,22 @@
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
+    <style name="CustomGuidanceContainer" parent="Widget.Leanback.GuidanceStylist.ContainerStyle">
+        <item name="android:background">@drawable/glass_guidance_background</item>
+    </style>
+
+    <style name="CustomGuidedActionsContainer" parent="Widget.Leanback.GuidedActionsStylist.ContainerStyle">
+        <item name="android:background">@drawable/glass_actions_background</item>
+    </style>
 
     <style name="Theme.SetupWizard" parent="@style/Theme.Leanback.GuidedStep">
         <item name="guidedActionItemContainerStyle">@style/guidedActionItem</item>
         <item name="guidedActionItemTitleStyle">@style/guidedActionItemTitle</item>
         <item name="datePickerStyle">@style/datePicker</item>
+
+        <item name="guidanceContainerStyle">@style/CustomGuidanceContainer</item>
+        <item name="guidedActionsContainerStyle">@style/CustomGuidedActionsContainer</item>
+        <item name="guidedButtonActionsContainerStyle">@style/CustomGuidedActionsContainer</item>
     </style>
 
 </resources>
