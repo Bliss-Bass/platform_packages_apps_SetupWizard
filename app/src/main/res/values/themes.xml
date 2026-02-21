@@ -14,10 +14,14 @@
 
     <style name="CustomGuidanceContainer">
         <item name="android:background">@drawable/glass_guidance_background</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
     </style>
 
     <style name="CustomGuidedActionsContainer">
         <item name="android:background">@drawable/glass_actions_background</item>
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
     </style>
 
     <style name="Theme.SetupWizard" parent="@style/Theme.Leanback.GuidedStep">

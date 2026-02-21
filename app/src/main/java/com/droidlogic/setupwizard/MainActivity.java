@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -25,6 +26,7 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
 import com.droidlogic.setupwizard.fragment.BaseGuideStepFragment;
@@ -39,6 +41,7 @@ import java.util.List;
 
 public class MainActivity extends FragmentActivity {
 
+    private static final String TAG = "MainActivity";
     private TextView runningInfo;
     private View viNextAction;
     private View viWifiFloat;
@@ -116,15 +119,9 @@ public class MainActivity extends FragmentActivity {
         // Touch-based Debug Escape Logic
         mainRoot.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                // Adaptive corner detection: top 10% and left 10% of screen
-                float xThreshold = v.getWidth() * 0.1f;
-                float yThreshold = v.getHeight() * 0.1f;
+                float xThreshold = Math.max(v.getWidth() * 0.15f, 150f);
+                float yThreshold = Math.max(v.getHeight() * 0.15f, 150f);
                 
-                // Minimum touch area for small screens (approx 48dp)
-                float minThreshold = 100f; 
-                xThreshold = Math.max(xThreshold, minThreshold);
-                yThreshold = Math.max(yThreshold, minThreshold);
-
                 float x = event.getX();
                 float y = event.getY();
                 if (x < xThreshold && y < yThreshold) {
@@ -137,7 +134,6 @@ public class MainActivity extends FragmentActivity {
                     lastCornerClickTime = currentTime;
 
                     if (cornerClickCount == 3) {
-                        // Start 5-second long press detection
                         debugHandler.postDelayed(longPressRunnable, 5000);
                     }
                 } else {
@@ -165,7 +161,10 @@ public class MainActivity extends FragmentActivity {
         
         animateBackgroundColor(pageColors[colorIndex % pageColors.length]);
         
-        if (viNextAction != null) viNextAction.bringToFront();
+        if (viNextAction != null) {
+            viNextAction.setVisibility(View.VISIBLE);
+            viNextAction.bringToFront();
+        }
         if (viWifiFloat != null) viWifiFloat.bringToFront();
     }
 
@@ -322,9 +321,12 @@ public class MainActivity extends FragmentActivity {
         try {
             PackageManager pm = getPackageManager();
             ComponentName name = new ComponentName("com.android.tv.settings", "com.android.tv.settings.tvoption.HdmiCecActivity");
-            pm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP);
+            // Check if component exists before attempting to set its enabled setting
+            if (pm.getComponentEnabledSetting(name) != -1 || pm.getActivityInfo(name, 0) != null) {
+                pm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP);
+            }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.w(TAG, "Failed to set HdmiCec component state: " + e.getMessage());
         }
     }
 

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -11,14 +12,18 @@
         android:layout_height="match_parent"
         android:background="#000000" />
 
-    <!-- Glass Content Container with Blur effect -->
+    <!-- Glass Content Container with Safe Area -->
     <FrameLayout
         android:id="@+id/content_container"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_margin="48dp"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="24dp"
         android:background="@drawable/glass_panel_background"
-        android:padding="16dp">
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <FrameLayout
             android:id="@android:id/content"
@@ -27,7 +32,18 @@
 
     </FrameLayout>
 
-    <!-- Overlay elements like Next button will be added here via code -->
+    <!-- Dedicated Bottom Toolbar -->
+    <FrameLayout
+        android:id="@+id/bottom_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:background="@drawable/glass_toolbar_background"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <!-- Button will be added here via code -->
+    </FrameLayout>
 
     <TextView
         android:id="@+id/text"
@@ -35,4 +51,4 @@
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-</FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
