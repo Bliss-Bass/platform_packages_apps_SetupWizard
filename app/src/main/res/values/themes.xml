@@ -12,11 +12,11 @@
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
-    <style name="CustomGuidanceContainer" parent="Widget.Leanback.GuidanceStylist.ContainerStyle">
+    <style name="CustomGuidanceContainer">
         <item name="android:background">@drawable/glass_guidance_background</item>
     </style>
 
-    <style name="CustomGuidedActionsContainer" parent="Widget.Leanback.GuidedActionsStylist.ContainerStyle">
+    <style name="CustomGuidedActionsContainer">
         <item name="android:background">@drawable/glass_actions_background</item>
     </style>
 

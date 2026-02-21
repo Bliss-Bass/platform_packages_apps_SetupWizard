@@ -16,7 +16,7 @@
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_margin="24dp"
+        android:layout_margin="48dp"
         android:background="@drawable/glass_panel_background"
         android:padding="16dp">
 
@@ -26,6 +26,8 @@
             android:layout_height="match_parent" />
 
     </FrameLayout>
+
+    <!-- Overlay elements like Next button will be added here via code -->
 
     <TextView
         android:id="@+id/text"

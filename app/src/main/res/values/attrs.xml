@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <attr name="datePickerStyle" format="reference" />
+    <attr name="guidedButtonActionsContainerStyle" format="reference" />
 </resources>
