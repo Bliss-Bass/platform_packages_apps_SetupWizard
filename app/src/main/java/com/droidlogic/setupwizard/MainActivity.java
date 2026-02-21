@@ -16,6 +16,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -24,6 +25,7 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -47,6 +49,7 @@ public class MainActivity extends FragmentActivity {
     private View viWifiFloat;
     private TextView tvWifiName;
     private View backgroundView;
+    private FrameLayout bottomToolbar;
     private int currentBackgroundColor;
     
     private final int[] pageColors = new int[]{
@@ -76,6 +79,7 @@ public class MainActivity extends FragmentActivity {
         
         runningInfo = findViewById(R.id.text);
         backgroundView = findViewById(R.id.background_view);
+        bottomToolbar = findViewById(R.id.bottom_toolbar);
         currentBackgroundColor = pageColors[0];
         updateBackground(currentBackgroundColor);
 
@@ -98,10 +102,18 @@ public class MainActivity extends FragmentActivity {
         enableWifi();
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
         
-        final FrameLayout mainRoot = findViewById(R.id.main_root);
+        final ConstraintLayout mainRoot = findViewById(R.id.main_root);
         viWifiFloat = LayoutInflater.from(this).inflate(R.layout.view_wifi_float, mainRoot, false);
         tvWifiName = viWifiFloat.findViewById(R.id.tv_wifi_name);
-        viNextAction = LayoutInflater.from(this).inflate(R.layout.view_next_action, mainRoot, false);
+        viNextAction = LayoutInflater.from(this).inflate(R.layout.view_next_action, bottomToolbar, false);
+        
+        // Ensure Next button is aligned to the right in the toolbar
+        FrameLayout.LayoutParams toolbarParams = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+        toolbarParams.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
+        toolbarParams.setMarginEnd(48);
+        viNextAction.setLayoutParams(toolbarParams);
+
         viNextAction.setOnClickListener(view -> {
             BaseGuideStepFragment topFragment = getTopBaseGuideStepFragment();
             if (topFragment != null) {
@@ -110,9 +122,10 @@ public class MainActivity extends FragmentActivity {
         });
         
         mainRoot.post(() -> {
-            mainRoot.addView(viNextAction);
+            if (bottomToolbar != null) {
+                bottomToolbar.addView(viNextAction);
+            }
             mainRoot.addView(viWifiFloat);
-            viNextAction.bringToFront();
             viWifiFloat.bringToFront();
         });
 
