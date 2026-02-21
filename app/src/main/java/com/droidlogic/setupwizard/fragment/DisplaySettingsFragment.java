@@ -47,7 +47,7 @@ public class DisplaySettingsFragment extends BaseGuideStepFragment {
         String title = getString(R.string.display_setup);
         String breadcrumb = "";
         String description = getString(R.string.display_description);
-        Drawable icon = ContextCompat.getDrawable(getActivity(), android.R.drawable.ic_menu_gallery);
+        Drawable icon = ContextCompat.getDrawable(getActivity(), R.drawable.ic_display_theme);
         return new GuidanceStylist.Guidance(title, description, breadcrumb, icon);
     }
 

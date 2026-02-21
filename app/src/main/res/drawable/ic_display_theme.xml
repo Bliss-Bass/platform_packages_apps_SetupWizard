@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="120dp"
+    android:height="120dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Monitor Body -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M21,2L3,2C1.9,2 1,2.9 1,4L1,16C1,17.1 1.9,18 3,18L10,18L10,20L8,20L8,22L16,22L16,20L14,20L14,18L21,18C22.1,18 23,17.1 23,16L23,4C23,2.9 22.1,2 21,2ZM21,16L3,16L3,4L21,4L21,16Z" />
+
+    <!-- Left Screen (Light Theme) -->
+    <path
+        android:fillColor="#E0E0E0"
+        android:pathData="M3,4L12,4L12,16L3,16Z" />
+
+    <!-- Right Screen (Dark Theme) -->
+    <path
+        android:fillColor="#424242"
+        android:pathData="M12,4L21,4L21,16L12,16Z" />
+
+</vector>
