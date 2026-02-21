@@ -1,27 +1,20 @@
 package com.droidlogic.setupwizard.fragment;
 
 import android.app.AlarmManager;
-import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.provider.Settings;
-import android.text.TextUtils;
 import android.util.Log;
-import android.view.View;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
+import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 import androidx.leanback.widget.GuidedActionsStylist;
 import androidx.leanback.widget.GuidedDatePickerAction;
 
 import com.android.settingslib.datetime.ZoneGetter;
-import com.droidlogic.setupwizard.MainActivity;
 import com.droidlogic.setupwizard.R;
 import com.droidlogic.setupwizard.leanback.timepicker.GuidedActionsStylistExtended;
 import com.droidlogic.setupwizard.leanback.timepicker.GuidedTimePickerAction;
@@ -60,7 +53,7 @@ public class DateTimeFragment extends BaseGuideStepFragment {
 
     @Override
     String getNextActionLabel() {
-        return getString(R.string.complete_setup);
+        return getString(R.string.action_next);
     }
 
     @Override
@@ -93,7 +86,7 @@ public class DateTimeFragment extends BaseGuideStepFragment {
 
         for (int i = 0; i < zonesList.size(); i++) {
             Map<String, Object> zoneMap = zonesList.get(i);
-            boolean check = TextUtils.equals(String.valueOf(zoneMap.get(KEY_ID)), currentTimeZoneId);
+            boolean check = String.valueOf(zoneMap.get(KEY_ID)).equals(currentTimeZoneId);
             GuidedAction guidedAction = addCheckedAction(getActivity(), timeZone, i, String.valueOf(zoneMap.get(KEY_NAME)), String.valueOf(zoneMap.get(KEY_GMT)), check);
             if (check) {
                 currentGuidedAction = guidedAction;
@@ -120,8 +113,6 @@ public class DateTimeFragment extends BaseGuideStepFragment {
                 .title(getString(R.string.current_time))
                 .build();
         actions.add(timePickerGuidedAction);
-
-        //addAction(getContext(), actions, CONTINUE, getString(R.string.action_start), getString(R.string.complete_setup));
     }
 
     @Override
@@ -156,13 +147,13 @@ public class DateTimeFragment extends BaseGuideStepFragment {
 
     @Override
     public void onNextAction() {
-        finishSetup();
+        GuidedStepSupportFragment.add(getParentFragmentManager(), new DisplaySettingsFragment());
     }
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
         if (action.getId() == CONTINUE) {
-            finishSetup();
+            onNextAction();
         } else if (action.getId() == BACK) {
             getParentFragmentManager().popBackStack();
         } else if (action.getId() == TIME_ZONE || action.getId() == DATE_PICKER || action.getId() == TIME_PICKER) {
@@ -234,13 +225,6 @@ public class DateTimeFragment extends BaseGuideStepFragment {
             return (value instanceof Comparable);
         }
 
-    }
-
-    private void finishSetup() {
-        MainActivity mainActivity = getMainActivity();
-        if (mainActivity != null) {
-            mainActivity.finishSetup();
-        }
     }
 
 }

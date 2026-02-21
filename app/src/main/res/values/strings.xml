@@ -37,6 +37,17 @@
     <string name="wifi_state_disconnected">Disconnected</string>
     <string name="wifi_state_failed">Connect Failed</string>
 
+    <string name="display_setup">Display Settings</string>
+    <string name="display_description">Choose your preferred UI theme and font size</string>
+    <string name="ui_theme">UI Theme</string>
+    <string name="theme_light">Light Mode</string>
+    <string name="theme_dark">Dark Mode</string>
+    <string name="font_size">Font Size</string>
+    <string name="font_size_small">Small</string>
+    <string name="font_size_default">Default</string>
+    <string name="font_size_large">Large</string>
+    <string name="font_size_largest">Largest</string>
+
     <string name="dialog_skip_title">Notice</string>
     <string name="dialog_skip_notice">Skip SetUp Wizard ?</string>
     <string name="dialog_btn_confirm">confirm</string>
