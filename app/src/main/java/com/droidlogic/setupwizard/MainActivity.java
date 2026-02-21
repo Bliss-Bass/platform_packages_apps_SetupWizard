@@ -116,10 +116,18 @@ public class MainActivity extends FragmentActivity {
         // Touch-based Debug Escape Logic
         mainRoot.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                // Check if touch is in top-left corner (e.g., 100x100 dp area)
+                // Adaptive corner detection: top 10% and left 10% of screen
+                float xThreshold = v.getWidth() * 0.1f;
+                float yThreshold = v.getHeight() * 0.1f;
+                
+                // Minimum touch area for small screens (approx 48dp)
+                float minThreshold = 100f; 
+                xThreshold = Math.max(xThreshold, minThreshold);
+                yThreshold = Math.max(yThreshold, minThreshold);
+
                 float x = event.getX();
                 float y = event.getY();
-                if (x < 200 && y < 200) {
+                if (x < xThreshold && y < yThreshold) {
                     long currentTime = System.currentTimeMillis();
                     if (currentTime - lastCornerClickTime < 1000) {
                         cornerClickCount++;
