@@ -34,6 +34,7 @@
     <string name="wifi_state_connecting">Connecting</string>
     <string name="wifi_state_authenticating">Authenticating</string>
     <string name="wifi_state_obtaining_ipaddr">Obtaining Ip Address</string>
+    <string name="wifi_state_disconnected">Disconnected</string>
     <string name="wifi_state_failed">Connect Failed</string>
 
     <string name="dialog_skip_title">Notice</string>

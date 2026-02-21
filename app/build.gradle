@@ -1,94 +1,41 @@
-import groovy.xml.XmlUtil
-
 plugins {
     id 'com.android.application'
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion "30.0.3"
+    namespace 'com.droidlogic.setupwizard'
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.droidlogic.setupwizard"
-        minSdkVersion 28
-        targetSdkVersion 30
+        minSdk 28
+        targetSdk 34
         versionCode 1
         versionName "1.0"
     }
 
-    signingConfigs {
-        release {
-            File strFile = new File("C:/Amlogic/Sign/keystore/platform.keystore")
-            storeFile file(strFile)
-            keyAlias 'platform'
-            keyPassword 'android'
-            storePassword 'android'
-        }
-        debug {
-            File strFile = new File("C:/Amlogic/Sign/keystore/platform.keystore")
-            storeFile file(strFile)
-            keyAlias 'platform'
-            keyPassword 'android'
-            storePassword 'android'
-        }
-    }
-
     buildTypes {
         release {
-            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 }
 
 dependencies {
+    // mockLibs provides AOSP internal libraries (settingslib) for compile-time resolution
+    compileOnly project(':mockLibs')
     compileOnly fileTree(dir: 'framework', include: ['*.jar'])
 
     implementation fileTree(dir: 'libs', include: ['*.aar'])
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    //noinspection GradleDependency
-    implementation 'androidx.appcompat:appcompat:1.3.0'
-    //noinspection GradleDependency
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0'
-    //noinspection GradleDependency
-    implementation 'androidx.leanback:leanback:1.1.0-alpha04'
-    //noinspection GradleDependency
-    implementation 'com.google.android.material:material:1.1.0'
-    //for gradle build
-    implementation project(path: ':mockLibs')
-}
-
-gradle.projectsEvaluated {
-    tasks.withType(JavaCompile) {
-        Set<File> fileSet = options.bootstrapClasspath.getFiles()
-        List<File> newFileList = new ArrayList<>();
-        newFileList.add(new File("framework/droidlogic.jar"))
-        newFileList.add(new File("framework/droidlogic-tv.jar"))
-        newFileList.add(new File("framework/layoutlib.jar"))
-        newFileList.addAll(fileSet)
-        options.bootstrapClasspath = files(newFileList.toArray())
-    }
-}
-
-preBuild {
-    doLast {
-        def imlFile = file("../.idea/modules/app/SetupWizard.app.iml")
-        try {
-            def parsedXml = (new XmlParser()).parse(imlFile)
-            def jdkNode = parsedXml.component[1].orderEntry.find { it.'@type' == 'jdk' }
-            parsedXml.component[1].remove(jdkNode)
-            def sdkString = "Android API " + android.compileSdkVersion.substring("android-".length()) + " Platform"
-            new Node(parsedXml.component[1], 'orderEntry', ['type': 'jdk', 'jdkName': sdkString, 'jdkType': 'Android SDK'])
-            XmlUtil.serialize(parsedXml, new FileOutputStream(imlFile))
-        } catch (Exception e) {
-            // nop, iml not found
-            println "no iml found"
-        }
-    }
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'com.google.android.material:material:1.9.0'
 }

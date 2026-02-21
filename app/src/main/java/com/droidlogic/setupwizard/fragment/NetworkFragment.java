@@ -1,7 +1,6 @@
 package com.droidlogic.setupwizard.fragment;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -22,19 +21,14 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.content.res.AppCompatResources;
 import androidx.core.content.ContextCompat;
-import androidx.fragment.app.FragmentManager;
-import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 import androidx.leanback.widget.GuidedActionAdapter;
 import androidx.leanback.widget.GuidedActionEditText;
-import androidx.leanback.widget.GuidedActionsStylist;
 import androidx.leanback.widget.VerticalGridView;
 import androidx.lifecycle.Lifecycle;
 
@@ -42,20 +36,19 @@ import com.android.settingslib.wifi.AccessPoint;
 import com.droidlogic.setupwizard.ConnectivityListener;
 import com.droidlogic.setupwizard.MainActivity;
 import com.droidlogic.setupwizard.R;
-import com.droidlogic.setupwizard.leanback.timepicker.GuidedActionsStylistExtended;
 import com.droidlogic.setupwizard.leanback.timepicker.GuidedWifiSignalAction;
 import com.droidlogic.setupwizard.utils.WifiConfigHelper;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
 import static android.net.NetworkInfo.DetailedState.CONNECTING;
-import static android.net.wifi.WifiConfiguration.NetworkSelectionStatus.DISABLED_AUTHENTICATION_FAILURE;
-import static android.net.wifi.WifiConfiguration.NetworkSelectionStatus.DISABLED_BY_WRONG_PASSWORD;
-import static android.net.wifi.WifiConfiguration.NetworkSelectionStatus.NETWORK_SELECTION_ENABLED;
 
 public class NetworkFragment extends BaseGuideStepFragment {
+
+    private static final String TAG = "NetworkFragment";
 
     private final int ID_WIFI = 20;
     private final int ID_ETHERNET = 21;
@@ -76,14 +69,19 @@ public class NetworkFragment extends BaseGuideStepFragment {
     private TaskHandler taskHandler;
     private HandlerThread handlerThread;
 
+    // Local constants for hidden values
+    private static final int NETWORK_SELECTION_ENABLED = 0;
+    private static final int DISABLED_AUTHENTICATION_FAILURE = 1;
+    private static final int DISABLED_BY_WRONG_PASSWORD = 2;
+
     private final BroadcastReceiver wifiScanReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context c, Intent intent) {
             if (WifiManager.NETWORK_STATE_CHANGED_ACTION.equals(intent.getAction())) {
                 NetworkInfo info = intent.getParcelableExtra(WifiManager.EXTRA_NETWORK_INFO);
-                if (info.getDetailedState() == NetworkInfo.DetailedState.CONNECTED) {
+                if (info != null && info.getDetailedState() == NetworkInfo.DetailedState.CONNECTED) {
                     updateConnectState(true);
-                } else {
+                } else if (info != null) {
                     NetworkInfo.DetailedState state = info.getDetailedState();
                     if (state == CONNECTING ||
                             state == NetworkInfo.DetailedState.AUTHENTICATING ||
@@ -141,9 +139,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
         super.onCreate(savedInstanceState);
         Context context = getContext();
         if (context == null) return;
-        if (context instanceof MainActivity) {
-            wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-        }
+        wifiManager = (WifiManager) context.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
     }
 
     private void setWifiListener() {
@@ -154,9 +150,9 @@ public class NetworkFragment extends BaseGuideStepFragment {
                     try {
                         WifiConfiguration configuration = accessPoint.getConfig();
                         if (currentConfiguration != null && configuration != null && TextUtils.equals(configuration.SSID, currentConfiguration.SSID)) {
-                            int state = (configuration.getNetworkSelectionStatus().getNetworkSelectionStatus());
+                            int state = getNetworkSelectionStatus(configuration);
                             if (state == DISABLED_AUTHENTICATION_FAILURE || state == DISABLED_BY_WRONG_PASSWORD) {
-                                if (currentConfiguration != null && !TextUtils.isEmpty(currentConfiguration.preSharedKey)) {
+                                if (!TextUtils.isEmpty(currentConfiguration.preSharedKey)) {
                                     toast(currentConfiguration.SSID + getString(R.string.password_error));
                                 }
                                 currentConfiguration = null;
@@ -169,6 +165,20 @@ public class NetworkFragment extends BaseGuideStepFragment {
             }
             updateWifiList();
         });
+    }
+
+    private int getNetworkSelectionStatus(WifiConfiguration config) {
+        try {
+            Method getStatusMethod = WifiConfiguration.class.getMethod("getNetworkSelectionStatus");
+            Object status = getStatusMethod.invoke(config);
+            if (status != null) {
+                Method getNetworkSelectionStatusMethod = status.getClass().getMethod("getNetworkSelectionStatus");
+                return (int) getNetworkSelectionStatusMethod.invoke(status);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to get network selection status", e);
+        }
+        return NETWORK_SELECTION_ENABLED;
     }
 
     private void initTask() {
@@ -294,7 +304,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
     @SuppressLint("RestrictedApi")
     private void updateWifiList(List<AccessPoint> accessPoints) {
         if (accessPoints == null || wifiManager == null) return;
-        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED) && isHideShowSoftKeyboard()) {
+        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
             wifiGuideActionList.clear();
             wifiList.clear();
             wifiList.addAll(accessPoints);
@@ -302,7 +312,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
             for (final AccessPoint accessPoint : accessPoints) {
                 WifiConfiguration config = accessPoint.getConfig();
                 if (config != null) {
-                    if (config.getNetworkSelectionStatus().getNetworkSelectionStatus() != NETWORK_SELECTION_ENABLED) {
+                    if (getNetworkSelectionStatus(config) != NETWORK_SELECTION_ENABLED) {
                         addEditablePasswordAction(getActivity(), wifiGuideActionList, EDITABLE_LABEL + index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
                     } else {
                         addWifiAction(getActivity(), wifiGuideActionList, index, accessPoint.getTitle(), accessPoint.getSummary(), accessPoint.getLevel());
@@ -327,26 +337,22 @@ public class NetworkFragment extends BaseGuideStepFragment {
     }
 
     private void updateConnectState(boolean toastMsg) {
-        if (wifiGuidedAction != null && getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
+        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
             //wifi state
             if (wifiManager != null) {
                 NetworkInfo networkInfo = getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                 if (networkInfo != null && networkInfo.isConnected()) {
                     final WifiInfo wifiInfo = wifiManager.getConnectionInfo();
-                    if (wifiInfo == null) {
-                        wifiGuidedAction.setDescription(getString(R.string.not_connected));
-                    } else {
+                    if (wifiInfo != null) {
                         String ssid = wifiInfo.getSSID();
                         if (!TextUtils.isEmpty(ssid) && ssid.length() > 2) {
-                            if (ssid.startsWith("\"")) {
-                                ssid = ssid.substring(1);
-                            }
-                            if (ssid.endsWith("\"")) {
-                                ssid = ssid.substring(0, ssid.length() - 1);
-                            }
+                            ssid = WifiConfigHelper.sanitizeSsid(ssid);
                         }
-                        wifiGuidedAction.setDescription(ssid);
-                        notifyActionChanged(0);
+                        // Need to update actual action, this assumes wifiGuidedAction is already set
+                        if (wifiGuidedAction != null) {
+                            wifiGuidedAction.setDescription(ssid);
+                            notifyActionChanged(0);
+                        }
                         if (toastMsg) {
                             toast(ssid + getString(R.string.connected));
                         }
@@ -355,16 +361,16 @@ public class NetworkFragment extends BaseGuideStepFragment {
             }
             //ethernet
             if (connectivityListener.isEthernetConnected()) {
-                ethernetGuidedAction.setDescription(getString(R.string.connected));
-            } else {
-                ethernetGuidedAction.setDescription(getString(R.string.not_connected));
+                if (ethernetGuidedAction != null) {
+                    ethernetGuidedAction.setDescription(getString(R.string.connected));
+                    notifyActionChanged(1);
+                }
             }
-            notifyActionChanged(1);
         }
     }
 
     private void updateWifiState(NetworkInfo.DetailedState state) {
-        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED) && state != null) {
+        if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED) && state != null && wifiGuidedAction != null) {
             int strId = -1;
             switch (state) {
                 case CONNECTING:
@@ -377,7 +383,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
                     strId = R.string.wifi_state_obtaining_ipaddr;
                     break;
                 case DISCONNECTED:
-                    strId = R.string.not_connected;
+                    strId = R.string.wifi_state_disconnected;
                     break;
                 case FAILED:
                     strId = R.string.wifi_state_failed;
@@ -390,172 +396,53 @@ public class NetworkFragment extends BaseGuideStepFragment {
         }
     }
 
-    private int getWifiIcon(int level) {
-        if (level <= 0) {
-            return R.drawable.wifi_strength_0;
-        } else if (level == 1) {
-            return R.drawable.wifi_strength_1;
-        } else if (level == 2) {
-            return R.drawable.wifi_strength_2;
-        } else if (level == 3) {
-            return R.drawable.wifi_strength_3;
-        }
-        return R.drawable.wifi_strength_4;
-    }
-
-    @Override
-    public GuidedActionsStylist onCreateActionsStylist() {
-        GuidedActionsStylistExtended guidedActionsStylistExtended = new GuidedActionsStylistExtended() {
-            @Override
-            public void onBindViewHolder(ViewHolder vh, GuidedAction action) {
-                super.onBindViewHolder(vh, action);
-                if (action instanceof GuidedWifiSignalAction) {
-                    try {
-                        GuidedWifiSignalAction guidedWifiSignalAction = (GuidedWifiSignalAction) action;
-                        Drawable drawable = AppCompatResources.getDrawable(vh.itemView.getContext(), getWifiIcon(guidedWifiSignalAction.getSignalLevel()));
-                        if (drawable != null) {
-                            drawable.setBounds(0, 0, 48, 48);
-                            TextView titleView = vh.getTitleView();
-                            titleView.setCompoundDrawables(null, null, drawable, null);
-                        }
-                        vh.itemView.setOnLongClickListener(view -> {
-                            try {
-                                if (!action.isEditable()) {
-                                    AccessPoint accessPoint = wifiList.get((int) action.getId());
-                                    WifiConfiguration config = accessPoint.getConfig();
-                                    if (config != null) {
-                                        showForgetDialog(accessPoint);
-                                    }
-                                }
-                            } catch (Exception e) {
-                                e.printStackTrace();
-                            }
-                            return true;
-                        });
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        };
-        guidedActionsStylistExtended.setEditingModeChangeListener(new GuidedActionsStylistExtended.EditingModeChangeListener() {
-            @Override
-            public void onEditingModeChange(GuidedActionsStylist.ViewHolder vh, boolean editing, boolean withTransition) {
-                if (editing) {
-                    GuidedAction action = vh.getAction();
-                    CharSequence editTitle = action.getTitle();
-                    MainActivity mainActivity = getMainActivity();
-                    if (mainActivity == null) return;
-                    mainActivity.setWifiName(String.valueOf(editTitle));
-                }
-            }
-        });
-        return guidedActionsStylistExtended;
-    }
-
-    @Override
-    public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
-        wifiGuidedAction = new GuidedAction.Builder(getActivity())
-                .title(getString(R.string.network_type_wifi))
-                .subActions(wifiGuideActionList)
-                .id(ID_WIFI)
-                .description(getString(R.string.not_connected))
-                .build();
-
-        ethernetGuidedAction = new GuidedAction.Builder(getActivity())
-                .title(getString(R.string.network_type_ethernet))
-                .id(ID_ETHERNET)
-                .description(getString(R.string.not_connected))
-                .build();
-
-        actions.add(wifiGuidedAction);
-        actions.add(ethernetGuidedAction);
-
-        //addAction(getContext(), actions, CONTINUE, getString(R.string.action_next), null);
-    }
-
-    @Override
-    public void onNextAction() {
-        FragmentManager fm = getParentFragmentManager();
-        DateTimeFragment next = DateTimeFragment.newInstance(getSelectedActionPosition() - 1);
-        GuidedStepSupportFragment.add(fm, next);
-    }
-
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
-        if (action.getId() == CONTINUE) {
-            onNextAction();
-        } else if (action.getId() == ID_WIFI) {
-            actionNextInvisible();
+        super.onGuidedActionClicked(action);
+        if (action.getId() == ID_WIFI) {
+            setActions(wifiGuideActionList);
         } else if (action.getId() == ID_ETHERNET) {
-            if (ethernetGuidedAction != null) {
-                toast(getString(R.string.network_type_ethernet) + ":" + ethernetGuidedAction.getDescription());
+            // do nothing
+        } else if (action.getId() < EDITABLE_LABEL) {
+            AccessPoint accessPoint = wifiList.get((int) action.getId());
+            if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
+                WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), "");
+                connectToNetwork(configuration);
+                currentConfiguration = configuration;
             }
         }
     }
 
-    @Override
-    public boolean onSubGuidedActionClicked(GuidedAction action) {
-        if (action.getId() >= EDITABLE_LABEL) return super.onSubGuidedActionClicked(action);
-        AccessPoint accessPoint = wifiList.get((int) action.getId());
-        WifiConfiguration config = accessPoint.getConfig();
-        if (config != null) {
-            if (!accessPoint.isActive()) {
-                connect(config);
+    private void connectToNetwork(WifiConfiguration config) {
+        try {
+            Method connectMethod = WifiManager.class.getMethod("connect", WifiConfiguration.class, Class.forName("android.net.wifi.WifiManager$ActionListener"));
+            connectMethod.invoke(wifiManager, config, null);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to connect to network", e);
+            // Fallback to standard enableNetwork
+            int networkId = wifiManager.addNetwork(config);
+            if (networkId != -1) {
+                wifiManager.enableNetwork(networkId, true);
             }
-        } else if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
-            WifiConfiguration wifiConfiguration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), null);
-            connect(wifiConfiguration);
         }
-        return super.onSubGuidedActionClicked(action);
     }
 
     @Override
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
-        int position = (int) (action.getId() - EDITABLE_LABEL);
-        CharSequence wifiPassword = action.getEditTitle();
-        AccessPoint accessPoint = wifiList.get(position);
-        WifiConfiguration wifiConfiguration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), String.valueOf(wifiPassword));
-        connect(wifiConfiguration);
+        if (action.getId() >= EDITABLE_LABEL) {
+            AccessPoint accessPoint = wifiList.get((int) (action.getId() - EDITABLE_LABEL));
+            String password = action.getEditTitle().toString();
+            if (!TextUtils.isEmpty(password)) {
+                WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), password);
+                connectToNetwork(configuration);
+                currentConfiguration = configuration;
+            }
+        }
         return super.onGuidedActionEditedAndProceed(action);
     }
 
-    private void connect(WifiConfiguration configuration) {
-        if (wifiManager == null || configuration == null) return;
-        currentConfiguration = configuration;
-        wifiManager.disconnect();
-        wifiManager.connect(configuration, null);
+    @Override
+    public void onNextAction() {
+        getMainActivity().showFragment(new LocalFragment());
     }
-
-    private void forget(WifiConfiguration configuration) {
-        if (wifiManager == null || configuration == null) return;
-        wifiManager.forget(configuration.networkId, null);
-        wifiManager.reconnect();
-    }
-
-    private void showForgetDialog(AccessPoint accessPoint) {
-        Context context = getContext();
-        if (context == null) return;
-        new AlertDialog.Builder(context)
-                .setTitle(R.string.forget_network_title)
-                .setMessage(R.string.forget_network_message)
-                .setNegativeButton(R.string.dialog_negative, (dialogInterface, i) -> dialogInterface.dismiss())
-                .setPositiveButton(R.string.dialog_positive, (dialogInterface, i) -> {
-                    dialogInterface.dismiss();
-                    if (accessPoint.isActive()) {
-                        currentConfiguration = null;
-                        if (wifiManager != null) {
-                            wifiManager.disconnect();
-                        }
-                    }
-                    forget(accessPoint.getConfig());
-                }).create().show();
-    }
-
-    private boolean isHideShowSoftKeyboard() {
-        if (getContext() == null) return true;
-        InputMethodManager im = getContext().getSystemService(InputMethodManager.class);
-        return im.getInputMethodWindowVisibleHeight() == 0;
-    }
-
 }

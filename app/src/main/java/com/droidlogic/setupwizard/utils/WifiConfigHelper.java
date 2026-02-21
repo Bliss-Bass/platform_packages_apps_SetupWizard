@@ -29,6 +29,7 @@ import android.util.Log;
 import com.android.settingslib.wifi.AccessPoint;
 import com.droidlogic.setupwizard.R;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -106,7 +107,7 @@ public final class WifiConfigHelper {
                 }
                 break;
             case AccessPoint.SECURITY_EAP:
-                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_EAP);
+                setSecurityParamsReflection(config, 3); // 3 is usually EAP
                 if (length != 0) {
                     config.enterpriseConfig.setPassword(password);
                 }
@@ -114,14 +115,23 @@ public final class WifiConfigHelper {
                 config.enterpriseConfig.setEapMethod(WifiEnterpriseConfig.Eap.PEAP);
                 break;
             case AccessPoint.SECURITY_SAE:
-                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_SAE);
+                setSecurityParamsReflection(config, 4); // 4 is usually SAE
                 if (length != 0) {
                     config.preSharedKey = '"' + password + '"';
                 }
                 break;
             case AccessPoint.SECURITY_OWE:
-                config.setSecurityParams(WifiConfiguration.SECURITY_TYPE_OWE);
+                setSecurityParamsReflection(config, 6); // 6 is usually OWE
                 break;
+        }
+    }
+
+    private static void setSecurityParamsReflection(WifiConfiguration config, int securityType) {
+        try {
+            Method method = WifiConfiguration.class.getMethod("setSecurityParams", int.class);
+            method.invoke(config, securityType);
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to set security params via reflection", e);
         }
     }
 
@@ -223,9 +233,14 @@ public final class WifiConfigHelper {
             return false;
         }
 
-        if (!wifiMan.saveConfiguration()) {
-            if (DEBUG) Log.e(TAG, "failed to save: " + config.toString());
-            return false;
+        try {
+            Method method = WifiManager.class.getMethod("saveConfiguration");
+            if (!(boolean) method.invoke(wifiMan)) {
+                if (DEBUG) Log.e(TAG, "failed to save: " + config.toString());
+                return false;
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Failed to call saveConfiguration via reflection", e);
         }
 
         if (DEBUG) Log.d(TAG, "saved network: " + config.toString());
@@ -248,7 +263,7 @@ public final class WifiConfigHelper {
                 }
 
                 // If the SSID and the security match, that's our network.
-                String configuredSsid = WifiInfo.sanitizeSsid(configuredNetwork.SSID);
+                String configuredSsid = sanitizeSsid(configuredNetwork.SSID);
                 if (TextUtils.equals(configuredSsid, ssid)) {
                     int configuredSecurity = WifiSecurityUtil.getSecurity(configuredNetwork);
                     if (configuredSecurity == security) {
@@ -259,5 +274,15 @@ public final class WifiConfigHelper {
         }
 
         return null;
+    }
+
+    public static String sanitizeSsid(String ssid) {
+        if (ssid == null) {
+            return null;
+        }
+        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+            return ssid.substring(1, ssid.length() - 1);
+        }
+        return ssid;
     }
 }

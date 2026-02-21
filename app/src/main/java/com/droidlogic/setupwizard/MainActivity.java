@@ -35,6 +35,8 @@ public class MainActivity extends FragmentActivity {
     private TextView tvWifiName;
     private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
 
+    private static final String USER_SETUP_COMPLETE = "user_setup_complete";
+
     private final Runnable viewUpdateTask = new Runnable() {
         @Override
         public void run() {
@@ -51,7 +53,8 @@ public class MainActivity extends FragmentActivity {
         setContentView(R.layout.activity_main);
         runningInfo = findViewById(R.id.text);
         viewUpdateTask.run();
-        if (Settings.Secure.getInt(getContentResolver(), Settings.Secure.USER_SETUP_COMPLETE, 0) == 1) {
+        
+        if (Settings.Secure.getInt(getContentResolver(), USER_SETUP_COMPLETE, 0) == 1) {
             try {
                 Thread.sleep(500);
             } catch (Exception e) {
@@ -79,6 +82,12 @@ public class MainActivity extends FragmentActivity {
             contentGroup.addView(viNextAction);
             contentGroup.addView(viWifiFloat);
         });
+    }
+
+    public void showFragment(Fragment fragment) {
+        if (fragment instanceof GuidedStepSupportFragment) {
+            GuidedStepSupportFragment.add(getSupportFragmentManager(), (GuidedStepSupportFragment) fragment, android.R.id.content);
+        }
     }
 
     public void enableWifi() {
@@ -258,7 +267,7 @@ public class MainActivity extends FragmentActivity {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
-                Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 1);
+                Settings.Secure.putInt(contentResolver, USER_SETUP_COMPLETE, 1);
                 PackageManager pm = context.getPackageManager();
                 ComponentName name = new ComponentName(context, MainActivity.class);
                 pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
@@ -273,7 +282,7 @@ public class MainActivity extends FragmentActivity {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 0);
-                Settings.Secure.putInt(contentResolver, Settings.Secure.USER_SETUP_COMPLETE, 0);
+                Settings.Secure.putInt(contentResolver, USER_SETUP_COMPLETE, 0);
                 PackageManager pm = context.getPackageManager();
                 ComponentName name = new ComponentName(context, MainActivity.class);
                 pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);
