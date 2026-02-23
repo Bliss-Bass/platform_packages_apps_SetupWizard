@@ -4,6 +4,8 @@ import android.app.AlarmManager;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -38,6 +40,8 @@ public class DateTimeFragment extends BaseGuideStepFragment {
     public static final String KEY_NAME = "name";
     public static final String KEY_GMT = "gmt";
     private static final String KEY_OFFSET = "offset";
+
+    private final Handler handler = new Handler(Looper.getMainLooper());
 
     @Override
     public GuidedActionsStylist onCreateActionsStylist() {
@@ -152,6 +156,7 @@ public class DateTimeFragment extends BaseGuideStepFragment {
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
+        super.onGuidedActionClicked(action); // Handles ACTION_NEXT from BaseGuideStepFragment
         if (action.getId() == CONTINUE) {
             onNextAction();
         } else if (action.getId() == BACK) {
@@ -167,7 +172,7 @@ public class DateTimeFragment extends BaseGuideStepFragment {
             Map<String, Object> zoneMap = zonesList.get((int) action.getId());
             final String tzId = (String) zoneMap.get(KEY_ID);
             if (setTimeZone(tzId)) {
-                postDelayed(() -> {
+                handler.postDelayed(() -> {
                     String title = I18NUtils.getTimeZoneName();
                     String desc = I18NUtils.getTimeZoneOffset();
                     timeZoneGuidedAction.setTitle(title);

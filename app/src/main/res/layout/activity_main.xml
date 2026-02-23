@@ -5,27 +5,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- LAYER 0: Animated Gradient Background (Lowest Z) -->
+    <!-- LAYER 0: Animated Gradient Background -->
     <View
         android:id="@+id/background_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000000" />
 
-    <!-- LAYER 1: Slightly Darkened Glass Overlay (Just above background) -->
+    <!-- LAYER 1: Slightly Darkened Glass Overlay -->
     <View
         android:id="@+id/glass_overlay"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="#66000000" /> <!-- 40% black glass -->
+        android:background="#66000000" />
 
-    <!-- LAYER 2: Fragment Content Container (Middle Z) -->
+    <!-- LAYER 2: Fragment Content Container -->
     <FrameLayout
         android:id="@+id/content_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- LAYER 3: Global Navigation Overlay (Topmost Z) -->
+    <!-- LAYER 3: Global Overlay Container for buttons -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/overlay_layer"
         android:layout_width="match_parent"
@@ -51,7 +51,6 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Legacy hidden text -->
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"

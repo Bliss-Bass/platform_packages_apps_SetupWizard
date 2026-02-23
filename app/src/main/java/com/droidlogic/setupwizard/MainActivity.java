@@ -417,7 +417,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void finish() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
             super.finish();
         }
     }

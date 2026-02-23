@@ -3,7 +3,6 @@ package com.droidlogic.setupwizard.fragment;
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
-import android.text.InputType;
 import android.util.TypedValue;
 import android.view.View;
 import android.widget.Toast;
@@ -25,6 +24,7 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
 
     protected static final int CONTINUE = 1;
     protected static final int BACK = 2;
+    protected static final int ACTION_NEXT = 1000;
 
     private static final int OPTION_CHECK_SET_ID = 10;
 
@@ -70,92 +70,52 @@ public abstract class BaseGuideStepFragment extends GuidedStepSupportFragment {
         return null;
     }
 
-    protected void post(Runnable action) {
-        if (getActivity() != null) {
-            getActivity().getWindow().getDecorView().post(action);
-        }
-    }
-
-    protected void postDelayed(Runnable action, long delayMillis) {
-        if (getActivity() != null) {
-            getActivity().getWindow().getDecorView().postDelayed(action, delayMillis);
-        }
-    }
-
     abstract String getNextActionLabel();
+
+    @Override
+    public void onCreateButtonActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
+        actions.add(new GuidedAction.Builder(getContext())
+                .id(ACTION_NEXT)
+                .title(getNextActionLabel())
+                .build());
+    }
+
+    @Override
+    public void onGuidedActionClicked(GuidedAction action) {
+        if (action.getId() == ACTION_NEXT) {
+            onNextAction();
+        }
+    }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        // Ensure buttons are visible within the panel
         try {
-            VerticalGridView verticalGridView = getGuidedActionsStylist().getActionsGridView();
-            if (verticalGridView != null) {
-                // Add bottom padding to lift the actions list above the navbar
-                int bottomPadding = (int) TypedValue.applyDimension(
-                        TypedValue.COMPLEX_UNIT_DIP, 86, getResources().getDisplayMetrics());
-                verticalGridView.setPadding(
-                        verticalGridView.getPaddingLeft(),
-                        verticalGridView.getPaddingTop(),
-                        verticalGridView.getPaddingRight(),
-                        bottomPadding
-                );
-                verticalGridView.setClipToPadding(false);
-
-                // Existing reflection code
-                RecyclerView.LayoutManager layoutManager = verticalGridView.getLayoutManager();
-                Class cls = Class.forName("androidx.leanback.widget.GridLayoutManager");
-                Method method;
-                try {
-                    method = cls.getMethod("setFocusOutAllowed", boolean.class, boolean.class);
-                } catch (NoSuchMethodException e) {
-                    method = cls.getDeclaredMethod("setFocusOutAllowed", boolean.class, boolean.class);
-                    method.setAccessible(true);
-                }
-                method.invoke(layoutManager, true, true);
+            View actionsContainer = getGuidedActionsStylist().getActionsGridView().getParent() instanceof View 
+                ? (View) getGuidedActionsStylist().getActionsGridView().getParent() : null;
+            if (actionsContainer != null) {
+                actionsContainer.setElevation(0);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            // ignore
         }
-
-        MainActivity mainActivity = getMainActivity();
-        if (mainActivity != null) {
-            mainActivity.nextActionBringToFront();
-        }
-
-        setNextActionText(getNextActionLabel());
-    }
-
-    protected void actionNextInvisible() {
-        MainActivity mainActivity = getMainActivity();
-        if (mainActivity != null) {
-            mainActivity.actionNextInvisible();
-        }
-    }
-
-    protected void actionNextVisible() {
-        MainActivity mainActivity = getMainActivity();
-        if (mainActivity != null) {
-            mainActivity.actionNextVisible();
-        }
-    }
-
-    protected void setNextActionText(String text) {
-        MainActivity mainActivity = getMainActivity();
-        if (mainActivity != null) {
-            mainActivity.setNextActionText(text);
-        }
-    }
-
-    @Override
-    public void collapseAction(boolean withTransition) {
-        super.collapseAction(withTransition);
-        actionNextVisible();
     }
 
     public abstract void onNextAction();
 
     public void onFocusChange(View oldFocus, View newFocus) {
-
     }
 
+    protected void actionNextInvisible() {
+        // No-op, managed by Button Actions
+    }
+
+    protected void actionNextVisible() {
+        // No-op, managed by Button Actions
+    }
+
+    protected void setNextActionText(String text) {
+        // No-op, managed by Button Actions
+    }
 }
