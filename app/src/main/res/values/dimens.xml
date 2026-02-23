@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Padding for guidance content to move it away from the screen edge -->
+    <dimen name="guidance_content_padding_start">48dp</dimen>
+    <dimen name="guidance_content_padding_top">48dp</dimen>
+    <dimen name="guidance_content_padding_bottom">48dp</dimen>
+</resources>

@@ -1,54 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Animated Gradient Background -->
+    <!-- LAYER 0: Animated Gradient Background (Lowest Z) -->
     <View
         android:id="@+id/background_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="#000000" />
 
-    <!-- Glass Content Container with Safe Area -->
+    <!-- LAYER 1: Slightly Darkened Glass Overlay (Just above background) -->
+    <View
+        android:id="@+id/glass_overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#66000000" /> <!-- 40% black glass -->
+
+    <!-- LAYER 2: Fragment Content Container (Middle Z) -->
     <FrameLayout
         android:id="@+id/content_container"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_margin="24dp"
-        android:background="@drawable/glass_panel_background"
-        android:padding="16dp"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_toolbar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- LAYER 3: Global Navigation Overlay (Topmost Z) -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/overlay_layer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="100dp"
+        android:fitsSystemWindows="true">
+
+        <androidx.constraintlayout.widget.Guideline
+            android:id="@+id/guideline_actions"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintGuide_percent="0.65" />
 
         <FrameLayout
-            android:id="@android:id/content"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:id="@+id/button_container"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/guideline_actions"
+            android:padding="24dp" />
 
-    </FrameLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Dedicated Bottom Toolbar -->
-    <FrameLayout
-        android:id="@+id/bottom_toolbar"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:background="@drawable/glass_toolbar_background"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent">
-
-        <!-- Button will be added here via code -->
-    </FrameLayout>
-
+    <!-- Legacy hidden text -->
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

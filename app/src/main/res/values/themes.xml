@@ -13,21 +13,33 @@
     </style>
 
     <style name="CustomGuidanceContainer">
-        <item name="android:background">@drawable/glass_guidance_background</item>
+        <!-- Full transparency to show MainActivity background and glass overlay -->
+        <item name="android:background">@android:color/transparent</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
+        <item name="android:elevation">10dp</item>
+        <item name="android:paddingStart">@dimen/guidance_content_padding_start</item>
+        <item name="android:paddingEnd">24dp</item>
+        <item name="android:paddingTop">48dp</item>
+        <item name="android:paddingBottom">48dp</item>
     </style>
 
     <style name="CustomGuidedActionsContainer">
-        <item name="android:background">@drawable/glass_actions_background</item>
+        <!-- Full transparency to show MainActivity background and glass overlay -->
+        <item name="android:background">@android:color/transparent</item>
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
+        <item name="android:elevation">10dp</item>
     </style>
 
     <style name="Theme.SetupWizard" parent="@style/Theme.Leanback.GuidedStep">
         <item name="guidedActionItemContainerStyle">@style/guidedActionItem</item>
         <item name="guidedActionItemTitleStyle">@style/guidedActionItemTitle</item>
         <item name="datePickerStyle">@style/datePicker</item>
+
+        <item name="guidedStepBackground">@android:color/transparent</item>
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
 
         <item name="guidanceContainerStyle">@style/CustomGuidanceContainer</item>
         <item name="guidedActionsContainerStyle">@style/CustomGuidedActionsContainer</item>

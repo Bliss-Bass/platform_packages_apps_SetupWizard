@@ -9,6 +9,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -25,7 +26,6 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.TextView;
 
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -49,15 +49,16 @@ public class MainActivity extends FragmentActivity {
     private View viWifiFloat;
     private TextView tvWifiName;
     private View backgroundView;
-    private FrameLayout bottomToolbar;
+    private FrameLayout buttonContainer;
     private int currentBackgroundColor;
+    private ValueAnimator pulseAnimator;
     
     private final int[] pageColors = new int[]{
             0xFF1A237E, // Deep Blue (Local)
             0xFF004D40, // Deep Teal (Navigation)
-            0xFF311B92, // Deep Purple (Network)
-            0xFF880E4F, // Deep Pink (DateTime)
-            0xFF1B5E20  // Deep Green (Display)
+            0xFF2E7D32, // Dark Green (Network)
+            0xFF4A148C, // Dark Purple (DateTime)
+            0xFF006064  // Dark Aqua (Display)
     };
 
     private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
@@ -79,7 +80,8 @@ public class MainActivity extends FragmentActivity {
         
         runningInfo = findViewById(R.id.text);
         backgroundView = findViewById(R.id.background_view);
-        bottomToolbar = findViewById(R.id.bottom_toolbar);
+        buttonContainer = findViewById(R.id.button_container);
+        
         currentBackgroundColor = pageColors[0];
         updateBackground(currentBackgroundColor);
 
@@ -102,17 +104,15 @@ public class MainActivity extends FragmentActivity {
         enableWifi();
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
         
-        final ConstraintLayout mainRoot = findViewById(R.id.main_root);
-        viWifiFloat = LayoutInflater.from(this).inflate(R.layout.view_wifi_float, mainRoot, false);
+        final View mainRoot = findViewById(R.id.main_root);
+        viWifiFloat = LayoutInflater.from(this).inflate(R.layout.view_wifi_float, (FrameLayout)findViewById(R.id.content_container), false);
         tvWifiName = viWifiFloat.findViewById(R.id.tv_wifi_name);
-        viNextAction = LayoutInflater.from(this).inflate(R.layout.view_next_action, bottomToolbar, false);
         
-        // Ensure Next button is aligned to the right in the toolbar
-        FrameLayout.LayoutParams toolbarParams = new FrameLayout.LayoutParams(
+        viNextAction = LayoutInflater.from(this).inflate(R.layout.view_next_action, buttonContainer, false);
+        FrameLayout.LayoutParams buttonParams = new FrameLayout.LayoutParams(
                 FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        toolbarParams.gravity = Gravity.CENTER_VERTICAL | Gravity.END;
-        toolbarParams.setMarginEnd(48);
-        viNextAction.setLayoutParams(toolbarParams);
+        buttonParams.gravity = Gravity.CENTER;
+        viNextAction.setLayoutParams(buttonParams);
 
         viNextAction.setOnClickListener(view -> {
             BaseGuideStepFragment topFragment = getTopBaseGuideStepFragment();
@@ -122,18 +122,19 @@ public class MainActivity extends FragmentActivity {
         });
         
         mainRoot.post(() -> {
-            if (bottomToolbar != null) {
-                bottomToolbar.addView(viNextAction);
+            if (buttonContainer != null) {
+                buttonContainer.removeAllViews();
+                buttonContainer.addView(viNextAction);
+                buttonContainer.bringToFront();
             }
-            mainRoot.addView(viWifiFloat);
+            ((FrameLayout)findViewById(R.id.content_container)).addView(viWifiFloat);
             viWifiFloat.bringToFront();
         });
 
-        // Touch-based Debug Escape Logic
         mainRoot.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                float xThreshold = Math.max(v.getWidth() * 0.15f, 150f);
-                float yThreshold = Math.max(v.getHeight() * 0.15f, 150f);
+                float xThreshold = Math.max(v.getWidth() * 0.10f, 100f);
+                float yThreshold = Math.max(v.getHeight() * 0.10f, 100f);
                 
                 float x = event.getX();
                 float y = event.getY();
@@ -174,30 +175,70 @@ public class MainActivity extends FragmentActivity {
         
         animateBackgroundColor(pageColors[colorIndex % pageColors.length]);
         
-        if (viNextAction != null) {
+        if (buttonContainer != null) {
+            buttonContainer.bringToFront();
             viNextAction.setVisibility(View.VISIBLE);
-            viNextAction.bringToFront();
         }
         if (viWifiFloat != null) viWifiFloat.bringToFront();
     }
 
     private void animateBackgroundColor(int targetColor) {
+        if (pulseAnimator != null) {
+            pulseAnimator.cancel();
+        }
+
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), currentBackgroundColor, targetColor);
         colorAnimation.setDuration(2000); 
         colorAnimation.addUpdateListener(animator -> {
             int color = (int) animator.getAnimatedValue();
             updateBackground(color);
         });
+        
+        colorAnimation.addListener(new android.animation.AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(android.animation.Animator animation) {
+                startPulsingAnimation(targetColor);
+            }
+        });
+        
         colorAnimation.start();
         currentBackgroundColor = targetColor;
     }
 
+    private void startPulsingAnimation(int baseColor) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(baseColor, hsv);
+        
+        float originalValue = hsv[2];
+        float targetValue = Math.min(originalValue + 0.15f, 1.0f);
+        if (targetValue == originalValue) {
+            targetValue = Math.max(originalValue - 0.15f, 0.0f);
+        }
+
+        pulseAnimator = ValueAnimator.ofFloat(originalValue, targetValue);
+        pulseAnimator.setDuration(4000);
+        pulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
+        pulseAnimator.setRepeatMode(ValueAnimator.REVERSE);
+        
+        pulseAnimator.addUpdateListener(animation -> {
+            float value = (float) animation.getAnimatedValue();
+            float[] currentHsv = new float[3];
+            Color.colorToHSV(baseColor, currentHsv);
+            currentHsv[2] = value;
+            updateBackground(Color.HSVToColor(currentHsv));
+        });
+        
+        pulseAnimator.start();
+    }
+
     private void updateBackground(int color) {
-        GradientDrawable gradient = new GradientDrawable(
-                GradientDrawable.Orientation.BR_TL,
-                new int[]{color, 0xFF000000}
-        );
-        backgroundView.setBackground(gradient);
+        if (backgroundView != null) {
+            GradientDrawable gradient = new GradientDrawable(
+                    GradientDrawable.Orientation.BR_TL,
+                    new int[]{color, Color.BLACK}
+            );
+            backgroundView.setBackground(gradient);
+        }
     }
 
     public void showFragment(Fragment fragment) {
@@ -221,8 +262,8 @@ public class MainActivity extends FragmentActivity {
 
     private BaseGuideStepFragment getTopBaseGuideStepFragment() {
         List<Fragment> fragmentList = getSupportFragmentManager().getFragments();
-        if (fragmentList.size() > 0) {
-            Fragment fragment = fragmentList.get(fragmentList.size() - 1);
+        for (int i = fragmentList.size() - 1; i >= 0; i--) {
+            Fragment fragment = fragmentList.get(i);
             if (fragment instanceof BaseGuideStepFragment) {
                 return (BaseGuideStepFragment) fragment;
             }
@@ -252,29 +293,32 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void showWifiView(View anchorView) {
-        if (anchorView == null) return;
+        if (anchorView == null || viWifiFloat == null) return;
         viWifiFloat.postDelayed(() -> {
             int[] location = new int[2];
             anchorView.getLocationInWindow(location);
             viWifiFloat.setVisibility(View.VISIBLE);
             viWifiFloat.bringToFront();
-            FrameLayout.LayoutParams pms = (FrameLayout.LayoutParams) viWifiFloat.getLayoutParams();
-            pms.leftMargin = location[0];
-            pms.topMargin = (int) (location[1] - viWifiFloat.getHeight() * 0.5);
-            viWifiFloat.setLayoutParams(pms);
+            
+            if (viWifiFloat.getLayoutParams() instanceof FrameLayout.LayoutParams) {
+                FrameLayout.LayoutParams pms = (FrameLayout.LayoutParams) viWifiFloat.getLayoutParams();
+                pms.leftMargin = location[0];
+                pms.topMargin = (int) (location[1] - viWifiFloat.getHeight() * 0.5);
+                viWifiFloat.setLayoutParams(pms);
+            }
         }, 60);
     }
 
     public void hideWifiView() {
-        if (viWifiFloat.getVisibility() == View.VISIBLE) {
+        if (viWifiFloat != null && viWifiFloat.getVisibility() == View.VISIBLE) {
             viWifiFloat.setVisibility(View.INVISIBLE);
         }
     }
 
     public void actionNextVisible() {
-        if (viNextAction != null) {
+        if (buttonContainer != null) {
             viNextAction.setVisibility(View.VISIBLE);
-            viNextAction.bringToFront();
+            buttonContainer.bringToFront();
         }
     }
 
@@ -283,7 +327,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void nextActionBringToFront() {
-        if (viNextAction != null) viNextAction.bringToFront();
+        if (buttonContainer != null) buttonContainer.bringToFront();
     }
 
     public void setNextActionText(String text) {
@@ -314,12 +358,14 @@ public class MainActivity extends FragmentActivity {
     }
 
     private void showEscapeDialog() {
-        runOnUiThread(() -> new AlertDialog.Builder(this)
+        runOnUiThread(() -> {
+            if (isFinishing() || isDestroyed()) return;
+            new AlertDialog.Builder(this)
                 .setTitle(R.string.dialog_skip_title)
                 .setMessage(R.string.dialog_skip_notice)
                 .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
                     dialog.dismiss();
-                    setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+                    setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
                     finishSetup();
                 })
                 .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> {
@@ -327,16 +373,19 @@ public class MainActivity extends FragmentActivity {
                     cornerClickCount = 0;
                 })
                 .create()
-                .show());
+                .show();
+        });
     }
 
     private void setHdmiCecComponentEnabled(int state) {
         try {
             PackageManager pm = getPackageManager();
             ComponentName name = new ComponentName("com.android.tv.settings", "com.android.tv.settings.tvoption.HdmiCecActivity");
-            // Check if component exists before attempting to set its enabled setting
-            if (pm.getComponentEnabledSetting(name) != -1 || pm.getActivityInfo(name, 0) != null) {
+            try {
+                pm.getActivityInfo(name, 0);
                 pm.setComponentEnabledSetting(name, state, PackageManager.DONT_KILL_APP);
+            } catch (PackageManager.NameNotFoundException e) {
+                Log.w(TAG, "HdmiCecActivity not found");
             }
         } catch (Exception e) {
             Log.w(TAG, "Failed to set HdmiCec component state: " + e.getMessage());
@@ -368,7 +417,7 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void finish() {
         if (getSupportFragmentManager().getBackStackEntryCount() > 0) {
-            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_ENABLED);
+            setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
             super.finish();
         }
     }
@@ -384,7 +433,7 @@ public class MainActivity extends FragmentActivity {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 1);
-                Settings.Secure.putInt(contentResolver, USER_SETUP_COMPLETE, 1);
+                Settings.Secure.putInt(contentResolver, "user_setup_complete", 1);
                 PackageManager pm = context.getPackageManager();
                 ComponentName name = new ComponentName(context, MainActivity.class);
                 pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_DISABLED, PackageManager.DONT_KILL_APP);
@@ -399,7 +448,7 @@ public class MainActivity extends FragmentActivity {
             try {
                 ContentResolver contentResolver = context.getContentResolver();
                 Settings.Global.putInt(contentResolver, Settings.Global.DEVICE_PROVISIONED, 0);
-                Settings.Secure.putInt(contentResolver, USER_SETUP_COMPLETE, 0);
+                Settings.Secure.putInt(contentResolver, "user_setup_complete", 0);
                 PackageManager pm = context.getPackageManager();
                 ComponentName name = new ComponentName(context, MainActivity.class);
                 pm.setComponentEnabledSetting(name, PackageManager.COMPONENT_ENABLED_STATE_ENABLED, PackageManager.DONT_KILL_APP);

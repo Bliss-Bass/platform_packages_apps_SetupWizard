@@ -108,8 +108,10 @@ public class NetworkFragment extends BaseGuideStepFragment {
             runOnUiThread(() -> {
                 if (connectivityListener != null) {
                     final List<AccessPoint> accessPoints = connectivityListener.getAvailableNetworks();
-                    updateWifiList(accessPoints);
-                    updateConnectState(false);
+                    if (accessPoints != null) {
+                        updateWifiList(accessPoints);
+                        updateConnectState(false);
+                    }
                 }
             });
         }
@@ -279,8 +281,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
     private static void addWifiAction(
             Context context,
             List<GuidedAction> actions,
-            long id,
-            String title,
+            long id, String title,
             String desc,
             int signalLevel) {
         actions.add(new GuidedWifiSignalAction.Builder(context)
@@ -316,6 +317,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 .id(ID_WIFI)
                 .title(getString(R.string.network_type_wifi))
                 .description(getString(R.string.not_connected))
+                .subActions(new ArrayList<>())
                 .build();
         actions.add(wifiGuidedAction);
 
@@ -352,19 +354,14 @@ public class NetworkFragment extends BaseGuideStepFragment {
                 }
                 index++;
             }
-            VerticalGridView verticalGridView = getGuidedActionsStylist().getSubActionsGridView();
-            if (verticalGridView != null) {
-                GuidedActionAdapter guidedActionAdapter = (GuidedActionAdapter) verticalGridView.getAdapter();
-                if (guidedActionAdapter != null) {
-                    guidedActionAdapter.setActions(wifiGuideActionList);
-                }
+            if (wifiGuidedAction != null) {
+                wifiGuidedAction.setSubActions(wifiGuideActionList);
             }
         }
     }
 
     private void updateConnectState(boolean toastMsg) {
         if (getLifecycle().getCurrentState().isAtLeast(Lifecycle.State.CREATED)) {
-            //wifi state
             if (wifiManager != null) {
                 NetworkInfo networkInfo = getNetworkInfo(ConnectivityManager.TYPE_WIFI);
                 if (networkInfo != null && networkInfo.isConnected()) {
@@ -376,7 +373,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
                         }
                         if (wifiGuidedAction != null) {
                             wifiGuidedAction.setDescription(ssid);
-                            notifyActionChanged(0);
+                            notifyActionChanged(findActionPositionById(ID_WIFI));
                         }
                         if (toastMsg) {
                             toast(ssid + getString(R.string.connected));
@@ -384,11 +381,10 @@ public class NetworkFragment extends BaseGuideStepFragment {
                     }
                 }
             }
-            //ethernet
             if (connectivityListener != null && connectivityListener.isEthernetConnected()) {
                 if (ethernetGuidedAction != null) {
                     ethernetGuidedAction.setDescription(getString(R.string.connected));
-                    notifyActionChanged(1);
+                    notifyActionChanged(findActionPositionById(ID_ETHERNET));
                 }
             }
         }
@@ -416,26 +412,25 @@ public class NetworkFragment extends BaseGuideStepFragment {
             }
             if (strId != -1) {
                 wifiGuidedAction.setDescription(getString(strId));
-                notifyActionChanged(0);
+                notifyActionChanged(findActionPositionById(ID_WIFI));
             }
         }
     }
 
     @Override
-    public void onGuidedActionClicked(GuidedAction action) {
-        super.onGuidedActionClicked(action);
-        if (action.getId() == ID_WIFI) {
-            setActions(wifiGuideActionList);
-        } else if (action.getId() == ID_ETHERNET) {
-            // do nothing
-        } else if (action.getId() < EDITABLE_LABEL) {
-            AccessPoint accessPoint = wifiList.get((int) action.getId());
-            if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
-                WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), "");
-                connectToNetwork(configuration);
-                currentConfiguration = configuration;
+    public boolean onSubGuidedActionClicked(GuidedAction action) {
+        if (action.getId() < EDITABLE_LABEL) {
+            int index = (int) action.getId();
+            if (index >= 0 && index < wifiList.size()) {
+                AccessPoint accessPoint = wifiList.get(index);
+                if (accessPoint.getSecurity() == AccessPoint.SECURITY_NONE) {
+                    WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), "");
+                    connectToNetwork(configuration);
+                    currentConfiguration = configuration;
+                }
             }
         }
+        return super.onSubGuidedActionClicked(action);
     }
 
     private void connectToNetwork(WifiConfiguration config) {
@@ -444,7 +439,6 @@ public class NetworkFragment extends BaseGuideStepFragment {
             connectMethod.invoke(wifiManager, config, null);
         } catch (Exception e) {
             Log.e(TAG, "Failed to connect to network", e);
-            // Fallback to standard enableNetwork
             int networkId = wifiManager.addNetwork(config);
             if (networkId != -1) {
                 wifiManager.enableNetwork(networkId, true);
@@ -455,12 +449,15 @@ public class NetworkFragment extends BaseGuideStepFragment {
     @Override
     public long onGuidedActionEditedAndProceed(GuidedAction action) {
         if (action.getId() >= EDITABLE_LABEL) {
-            AccessPoint accessPoint = wifiList.get((int) (action.getId() - EDITABLE_LABEL));
-            String password = action.getEditTitle().toString();
-            if (!TextUtils.isEmpty(password)) {
-                WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), password);
-                connectToNetwork(configuration);
-                currentConfiguration = configuration;
+            int index = (int) (action.getId() - EDITABLE_LABEL);
+            if (index >= 0 && index < wifiList.size()) {
+                AccessPoint accessPoint = wifiList.get(index);
+                String password = action.getEditTitle().toString();
+                if (!TextUtils.isEmpty(password)) {
+                    WifiConfiguration configuration = WifiConfigHelper.getConfiguration(getContext(), accessPoint.getSsidStr(), accessPoint.getSecurity(), password);
+                    connectToNetwork(configuration);
+                    currentConfiguration = configuration;
+                }
             }
         }
         return super.onGuidedActionEditedAndProceed(action);
@@ -468,7 +465,6 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     @Override
     public void onNextAction() {
-        // Correct the flow loop: Network -> DateTime
         GuidedStepSupportFragment.add(getParentFragmentManager(), new DateTimeFragment());
     }
 }
