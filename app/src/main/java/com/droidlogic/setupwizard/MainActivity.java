@@ -51,7 +51,7 @@ public class MainActivity extends FragmentActivity {
     private View backgroundView;
     private int currentBackgroundColor;
     private ValueAnimator pulseAnimator;
-    
+
     private final int[] pageColors = new int[]{
             0xFF1A237E, // Deep Blue (Local)
             0xFF004D40, // Deep Teal (Navigation)
@@ -63,7 +63,7 @@ public class MainActivity extends FragmentActivity {
     private final int[] forbiddenKey = new int[]{206, 243, 244, 245, 165, 246, 247, 248, 168, 85, 86, 130, 169, 88, 87, 89, 90, 183, 184, 185, 186};
 
     private static final String USER_SETUP_COMPLETE = "user_setup_complete";
-    
+
     // Debug Escape Logic
     private int cornerClickCount = 0;
     private long lastCornerClickTime = 0;
@@ -76,7 +76,7 @@ public class MainActivity extends FragmentActivity {
         setAppPermissions();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        
+
         runningInfo = findViewById(R.id.text);
         backgroundView = findViewById(R.id.background_view);
 
@@ -92,13 +92,13 @@ public class MainActivity extends FragmentActivity {
             finishSetup();
             return;
         }
-        
+
         getSupportFragmentManager().addOnBackStackChangedListener(this::updatePageVisuals);
 
         if (null == savedInstanceState) {
             GuidedStepSupportFragment.addAsRoot(this, new LocalFragment(), android.R.id.content);
         }
-        
+
         enableWifi();
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
 
@@ -131,7 +131,7 @@ public class MainActivity extends FragmentActivity {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 float xThreshold = Math.max(v.getWidth() * 0.10f, 100f);
                 float yThreshold = Math.max(v.getHeight() * 0.10f, 100f);
-                
+
                 float x = event.getX();
                 float y = event.getY();
                 if (x < xThreshold && y < yThreshold) {
@@ -168,9 +168,9 @@ public class MainActivity extends FragmentActivity {
         else if (topFragment instanceof NetworkFragment) colorIndex = 2;
         else if (topFragment instanceof DateTimeFragment) colorIndex = 3;
         else if (topFragment instanceof DisplaySettingsFragment) colorIndex = 4;
-        
+
         animateBackgroundColor(pageColors[colorIndex % pageColors.length]);
-        
+
         if (viNextAction != null) {
             viNextAction.bringToFront();
             viNextAction.setVisibility(View.VISIBLE);
@@ -184,19 +184,19 @@ public class MainActivity extends FragmentActivity {
         }
 
         ValueAnimator colorAnimation = ValueAnimator.ofObject(new ArgbEvaluator(), currentBackgroundColor, targetColor);
-        colorAnimation.setDuration(2000); 
+        colorAnimation.setDuration(2000);
         colorAnimation.addUpdateListener(animator -> {
             int color = (int) animator.getAnimatedValue();
             updateBackground(color);
         });
-        
+
         colorAnimation.addListener(new android.animation.AnimatorListenerAdapter() {
             @Override
             public void onAnimationEnd(android.animation.Animator animation) {
                 startPulsingAnimation(targetColor);
             }
         });
-        
+
         colorAnimation.start();
         currentBackgroundColor = targetColor;
     }
@@ -204,7 +204,7 @@ public class MainActivity extends FragmentActivity {
     private void startPulsingAnimation(int baseColor) {
         float[] hsv = new float[3];
         Color.colorToHSV(baseColor, hsv);
-        
+
         float originalValue = hsv[2];
         float targetValue = Math.min(originalValue + 0.15f, 1.0f);
         if (targetValue == originalValue) {
@@ -215,7 +215,7 @@ public class MainActivity extends FragmentActivity {
         pulseAnimator.setDuration(4000);
         pulseAnimator.setRepeatCount(ValueAnimator.INFINITE);
         pulseAnimator.setRepeatMode(ValueAnimator.REVERSE);
-        
+
         pulseAnimator.addUpdateListener(animation -> {
             float value = (float) animation.getAnimatedValue();
             float[] currentHsv = new float[3];
@@ -223,7 +223,7 @@ public class MainActivity extends FragmentActivity {
             currentHsv[2] = value;
             updateBackground(Color.HSVToColor(currentHsv));
         });
-        
+
         pulseAnimator.start();
     }
 
@@ -295,7 +295,7 @@ public class MainActivity extends FragmentActivity {
             anchorView.getLocationInWindow(location);
             viWifiFloat.setVisibility(View.VISIBLE);
             viWifiFloat.bringToFront();
-            
+
             if (viWifiFloat.getLayoutParams() instanceof FrameLayout.LayoutParams) {
                 FrameLayout.LayoutParams pms = (FrameLayout.LayoutParams) viWifiFloat.getLayoutParams();
                 pms.leftMargin = location[0];
@@ -357,19 +357,19 @@ public class MainActivity extends FragmentActivity {
         runOnUiThread(() -> {
             if (isFinishing() || isDestroyed()) return;
             new AlertDialog.Builder(this)
-                .setTitle(R.string.dialog_skip_title)
-                .setMessage(R.string.dialog_skip_notice)
-                .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
-                    dialog.dismiss();
-                    setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
-                    finishSetup();
-                })
-                .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> {
-                    dialog.dismiss();
-                    cornerClickCount = 0;
-                })
-                .create()
-                .show();
+                    .setTitle(R.string.dialog_skip_title)
+                    .setMessage(R.string.dialog_skip_notice)
+                    .setPositiveButton(R.string.dialog_btn_confirm, (dialog, which) -> {
+                        dialog.dismiss();
+                        setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
+                        finishSetup();
+                    })
+                    .setNegativeButton(R.string.dialog_btn_cancel, (dialog, which) -> {
+                        dialog.dismiss();
+                        cornerClickCount = 0;
+                    })
+                    .create()
+                    .show();
         });
     }
 
@@ -420,7 +420,7 @@ public class MainActivity extends FragmentActivity {
 
     public void finishSetup() {
         disableComponent(this);
-        setAppPermissions(); 
+        setAppPermissions();
         super.finish();
     }
 

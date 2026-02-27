@@ -46,10 +46,7 @@ import com.android.settingslib.core.lifecycle.events.OnStart;
 import com.android.settingslib.core.lifecycle.events.OnStop;
 import com.android.settingslib.wifi.AccessPoint;
 import com.android.settingslib.wifi.WifiTracker;
-import com.droidlogic.setupwizard.utils.WifiConfigHelper;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,10 +85,6 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
     private int mNetworkType;
     private String mWifiSsid;
     private int mWifiSignalStrength;
-
-    // Constants for hidden values
-    private static final int RANDOMIZATION_NONE = 0;
-    private static final int RANDOMIZATION_PERSISTENT = 1;
 
     public ConnectivityListener(Context context, Listener listener) {
         this(context, listener, null);
@@ -176,20 +169,10 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
 
     public String getWifiIpAddress() {
         if (isWifiConnected()) {
-            Network network = getCurrentNetwork();
+            Network network = mWifiManager.getCurrentNetwork();
             return formatIpAddresses(network);
         } else {
             return "";
-        }
-    }
-
-    private Network getCurrentNetwork() {
-        try {
-            Method method = WifiManager.class.getMethod("getCurrentNetwork");
-            return (Network) method.invoke(mWifiManager);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to get current network", e);
-            return null;
         }
     }
 
@@ -204,24 +187,15 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
         }
         if (ap != null) {
             WifiConfiguration wifiConfig = ap.getConfig();
-            if (wifiConfig != null) {
-                int macRandomizationSetting = getMacRandomizationSetting(wifiConfig);
-                if (macRandomizationSetting == RANDOMIZATION_PERSISTENT) {
-                    try {
-                        Method method = WifiConfiguration.class.getMethod("getRandomizedMacAddress");
-                        Object macAddress = method.invoke(wifiConfig);
-                        if (macAddress != null) {
-                            return macAddress.toString();
-                        }
-                    } catch (Exception e) {
-                        Log.e(TAG, "Failed to get randomized MAC address", e);
-                    }
-                }
+            if (wifiConfig != null
+                    && wifiConfig.macRandomizationSetting
+                    == WifiConfiguration.RANDOMIZATION_PERSISTENT) {
+                return wifiConfig.getRandomizedMacAddress().toString();
             }
         }
 
         // return device MAC address
-        final String[] macAddresses = getFactoryMacAddresses();
+        final String[] macAddresses = mWifiManager.getFactoryMacAddresses();
         if (macAddresses != null && macAddresses.length > 0) {
             return macAddresses[0];
         }
@@ -230,46 +204,11 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
         return "";
     }
 
-    private String[] getFactoryMacAddresses() {
-        try {
-            Method method = WifiManager.class.getMethod("getFactoryMacAddresses");
-            return (String[]) method.invoke(mWifiManager);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to get factory MAC addresses", e);
-            return null;
-        }
-    }
-
-    private int getMacRandomizationSetting(WifiConfiguration wifiConfig) {
-        try {
-            Field field = WifiConfiguration.class.getField("macRandomizationSetting");
-            return field.getInt(wifiConfig);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to get macRandomizationSetting", e);
-            return RANDOMIZATION_NONE;
-        }
-    }
-
-    private void setMacRandomizationSetting(WifiConfiguration wifiConfig, int value) {
-        try {
-            Field field = WifiConfiguration.class.getField("macRandomizationSetting");
-            field.setInt(wifiConfig, value);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to set macRandomizationSetting", e);
-        }
-    }
-
     /**
      * Return whether the connected Wifi supports MAC address randomization.
      */
     public boolean isMacAddressRandomizationSupported() {
-        try {
-            Method method = WifiManager.class.getMethod("isConnectedMacRandomizationSupported");
-            return (boolean) method.invoke(mWifiManager);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to check if MAC randomization is supported", e);
-            return false;
-        }
+        return mWifiManager.isConnectedMacRandomizationSupported();
     }
 
     /**
@@ -277,9 +216,9 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
      */
     public int getWifiMacRandomizationSetting(AccessPoint ap) {
         if (ap == null || ap.getConfig() == null) {
-            return RANDOMIZATION_NONE;
+            return WifiConfiguration.RANDOMIZATION_NONE;
         }
-        return getMacRandomizationSetting(ap.getConfig());
+        return ap.getConfig().macRandomizationSetting;
     }
 
     /**
@@ -287,7 +226,9 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
      */
     public void applyMacRandomizationSetting(AccessPoint ap, boolean enable) {
         if (ap != null && ap.getConfig() != null) {
-            setMacRandomizationSetting(ap.getConfig(), enable ? RANDOMIZATION_PERSISTENT : RANDOMIZATION_NONE);
+            ap.getConfig().macRandomizationSetting = enable
+                    ? WifiConfiguration.RANDOMIZATION_PERSISTENT
+                    : WifiConfiguration.RANDOMIZATION_NONE;
             mWifiManager.updateNetwork(ap.getConfig());
             // To activate changing, we need to reconnect network. WiFi will auto connect to
             // current network after disconnect(). Only needed when this is connected network.
@@ -401,7 +342,7 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
     private void updateConnectivityStatus() {
         NetworkInfo networkInfo = mConnectivityManager.getActiveNetworkInfo();
         if (networkInfo == null) {
-            mNetworkType = -1; // -1 for NONE
+            mNetworkType = ConnectivityManager.TYPE_NONE;
         } else {
             switch (networkInfo.getType()) {
                 case ConnectivityManager.TYPE_WIFI: {
@@ -442,7 +383,7 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
                     break;
 
                 default:
-                    mNetworkType = -1; // -1 for NONE
+                    mNetworkType = ConnectivityManager.TYPE_NONE;
                     break;
             }
         }
@@ -494,7 +435,7 @@ public class ConnectivityListener implements WifiTracker.WifiListener, Lifecycle
         if (wifiInfo != null) {
             ssid = wifiInfo.getSSID();
             if (ssid != null) {
-                ssid = WifiConfigHelper.sanitizeSsid(ssid);
+                ssid = WifiInfo.sanitizeSsid(ssid);
             }
         }
         return ssid;

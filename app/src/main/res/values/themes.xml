@@ -8,7 +8,7 @@
         <item name="android:textColor">#FFFFFF</item>
     </style>
 
-    <style name="datePicker" parent="Widget.AppCompat.Light.DropDownItem.Spinner">
+    <style name="datePicker" parent="@style/Widget.Leanback.PickerStyle.DatePickerStyle">
         <item name="android:textColor">#FFFFFF</item>
     </style>
 

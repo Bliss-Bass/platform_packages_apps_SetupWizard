@@ -3,9 +3,9 @@ package com.droidlogic.setupwizard.fragment;
 import android.app.ActivityManager;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.provider.Settings;
 import android.text.TextUtils;
-import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -13,25 +13,31 @@ import androidx.leanback.app.GuidedStepSupportFragment;
 import androidx.leanback.widget.GuidanceStylist;
 import androidx.leanback.widget.GuidedAction;
 
+import com.android.internal.app.LocalePicker;
 import com.droidlogic.setupwizard.R;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class LocalFragment extends BaseGuideStepFragment {
 
-    private static final String TAG = "LocalFragment";
     private static final int LANGUAGE = 10;
     private static final int LANGUAGE_ITEM = 11;
 
     private final List<GuidedAction> languageGuideActionList = new ArrayList<>();
-    private List<Object> localeInfoList;
+    private List<LocalePicker.LocaleInfo> localeInfoList;
     private GuidedAction currentGuidedAction;
 
     private Locale getCurrentLocale() {
-        return getResources().getConfiguration().getLocales().get(0);
+        Locale currentLocal = null;
+        try {
+            currentLocal = ActivityManager.getService().getConfiguration()
+                    .getLocales().get(0);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+        return currentLocal;
     }
 
     @Override
@@ -52,27 +58,15 @@ public class LocalFragment extends BaseGuideStepFragment {
         Locale currentLocal = getCurrentLocale();
 
         boolean isInDeveloperMode = Settings.Global.getInt(getContext().getContentResolver(), "development_settings_enabled", 0) != 0;
-        localeInfoList = getAllAssetLocales(isInDeveloperMode);
-        
-        if (localeInfoList != null) {
-            for (Object localeInfo : localeInfoList) {
-                try {
-                    Method getLocaleMethod = localeInfo.getClass().getMethod("getLocale");
-                    Method getLabelMethod = localeInfo.getClass().getMethod("getLabel");
-                    Locale locale = (Locale) getLocaleMethod.invoke(localeInfo);
-                    String label = (String) getLabelMethod.invoke(localeInfo);
-                    
-                    boolean checked = false;
-                    if (currentLocal != null && currentLocal.equals(locale)) {
-                        checked = true;
-                    }
-                    GuidedAction guidedAction = addCheckedAction(getActivity(), languageGuideActionList, LANGUAGE_ITEM, label, null, checked);
-                    if (checked) {
-                        currentGuidedAction = guidedAction;
-                    }
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to process locale info", e);
-                }
+        localeInfoList = LocalePicker.getAllAssetLocales(getContext(), isInDeveloperMode);
+        for (LocalePicker.LocaleInfo localeInfo : localeInfoList) {
+            boolean checked = false;
+            if (currentLocal != null && currentLocal.equals(localeInfo.getLocale())) {
+                checked = true;
+            }
+            GuidedAction guidedAction = addCheckedAction(getActivity(), languageGuideActionList, LANGUAGE_ITEM, localeInfo.getLabel(), null, checked);
+            if (checked) {
+                currentGuidedAction = guidedAction;
             }
         }
 
@@ -81,18 +75,8 @@ public class LocalFragment extends BaseGuideStepFragment {
                 .title(currentLocal != null ? currentLocal.getDisplayName() : "")
                 .subActions(languageGuideActionList)
                 .build());
-    }
 
-    @SuppressWarnings("unchecked")
-    private List<Object> getAllAssetLocales(boolean isInDeveloperMode) {
-        try {
-            Class<?> localePickerClass = Class.forName("com.android.internal.app.LocalePicker");
-            Method method = localePickerClass.getMethod("getAllAssetLocales", android.content.Context.class, boolean.class);
-            return (List<Object>) method.invoke(null, getContext(), isInDeveloperMode);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to get all asset locales via reflection", e);
-            return new ArrayList<>();
-        }
+        //addAction(getContext(), actions, CONTINUE, getString(R.string.action_next), null);
     }
 
     @Override
@@ -117,40 +101,22 @@ public class LocalFragment extends BaseGuideStepFragment {
     @Override
     public boolean onSubGuidedActionClicked(GuidedAction action) {
         if (action.getId() == LANGUAGE_ITEM && localeInfoList != null) {
-            for (Object localeInfo : localeInfoList) {
-                try {
-                    Method getLabelMethod = localeInfo.getClass().getMethod("getLabel");
-                    String label = (String) getLabelMethod.invoke(localeInfo);
-                    if (TextUtils.equals(label, action.getTitle())) {
-                        action.setChecked(true);
-                        if (currentGuidedAction != null) {
-                            currentGuidedAction.setChecked(false);
-                        }
-                        currentGuidedAction = action;
-                        
-                        Method getLocaleMethod = localeInfo.getClass().getMethod("getLocale");
-                        Locale locale = (Locale) getLocaleMethod.invoke(localeInfo);
-                        updateLocale(locale);
-
-                        onNextAction();
-                        break;
+            for (LocalePicker.LocaleInfo localeInfo : localeInfoList) {
+                if (TextUtils.equals(localeInfo.getLabel(), action.getTitle())) {
+                    action.setChecked(true);
+                    if (currentGuidedAction != null) {
+                        currentGuidedAction.setChecked(false);
                     }
-                } catch (Exception e) {
-                    Log.e(TAG, "Failed to update locale via reflection", e);
+                    currentGuidedAction = action;
+                    LocalePicker.updateLocale(localeInfo.getLocale());
+
+                    onNextAction();
+
+                    break;
                 }
             }
         }
         return super.onSubGuidedActionClicked(action);
-    }
-
-    private void updateLocale(Locale locale) {
-        try {
-            Class<?> localePickerClass = Class.forName("com.android.internal.app.LocalePicker");
-            Method method = localePickerClass.getMethod("updateLocale", java.util.Locale.class);
-            method.invoke(null, locale);
-        } catch (Exception e) {
-            Log.e(TAG, "Failed to update locale via reflection", e);
-        }
     }
 
 }
