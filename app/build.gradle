@@ -1,10 +1,12 @@
 import groovy.xml.XmlUtil
+import groovy.xml.XmlParser
 
 plugins {
     id 'com.android.application'
 }
 
 android {
+    namespace "com.droidlogic.setupwizard"
     compileSdkVersion 30
     buildToolsVersion "30.0.3"
 
@@ -16,26 +18,10 @@ android {
         versionName "1.0"
     }
 
-    signingConfigs {
-        release {
-            File strFile = new File("C:/Amlogic/Sign/keystore/platform.keystore")
-            storeFile file(strFile)
-            keyAlias 'platform'
-            keyPassword 'android'
-            storePassword 'android'
-        }
-        debug {
-            File strFile = new File("C:/Amlogic/Sign/keystore/platform.keystore")
-            storeFile file(strFile)
-            keyAlias 'platform'
-            keyPassword 'android'
-            storePassword 'android'
-        }
-    }
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+//            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
