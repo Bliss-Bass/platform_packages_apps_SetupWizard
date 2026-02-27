@@ -17,7 +17,6 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -28,7 +27,6 @@ import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.GuidedStepSupportFragment;
 
 import com.droidlogic.setupwizard.fragment.BaseGuideStepFragment;
@@ -106,7 +104,7 @@ public class MainActivity extends FragmentActivity {
         viWifiFloat = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_wifi_float, contentGroup, false);
         tvWifiName = viWifiFloat.findViewById(R.id.tv_wifi_name);
         viNextAction = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_next_action, contentGroup, false);
-        viNextAction.setOnClickListener(view -> {
+        viNextAction.findViewById(R.id.tv_next_action).setOnClickListener(view -> {
             BaseGuideStepFragment topFragment = getTopBaseGuideStepFragment();
             if (topFragment != null) {
                 topFragment.onNextAction();
@@ -126,7 +124,7 @@ public class MainActivity extends FragmentActivity {
             ((FrameLayout)findViewById(R.id.content_container)).addView(viWifiFloat);
             viWifiFloat.bringToFront();
         });
-*/
+        */
         contentGroup.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 float xThreshold = Math.max(v.getWidth() * 0.10f, 100f);
