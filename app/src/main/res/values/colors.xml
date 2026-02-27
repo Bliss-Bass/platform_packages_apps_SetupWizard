@@ -2,4 +2,7 @@
 <resources>
     <color name="action_next_focused">#FFFFFF</color>
     <color name="action_next_normal">#80FFFFFF</color>
+    <color name="lb_guidedactions_background">#80000000</color>
+    <color name="lb_guidedactions_background_dark">#80000000</color>
+
 </resources>

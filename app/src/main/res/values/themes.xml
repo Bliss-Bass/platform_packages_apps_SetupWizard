@@ -44,6 +44,8 @@
         <item name="guidanceContainerStyle">@style/CustomGuidanceContainer</item>
         <item name="guidedActionsContainerStyle">@style/CustomGuidedActionsContainer</item>
         <item name="guidedButtonActionsContainerStyle">@style/CustomGuidedActionsContainer</item>
+        <item name="guidedActionsBackground">@color/lb_guidedactions_background</item>
+        <item name="guidedActionsBackgroundDark">@color/lb_guidedactions_background_dark</item>
     </style>
 
 </resources>
