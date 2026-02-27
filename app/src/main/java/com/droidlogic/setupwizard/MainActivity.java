@@ -49,7 +49,6 @@ public class MainActivity extends FragmentActivity {
     private View viWifiFloat;
     private TextView tvWifiName;
     private View backgroundView;
-    private FrameLayout buttonContainer;
     private int currentBackgroundColor;
     private ValueAnimator pulseAnimator;
     
@@ -80,8 +79,7 @@ public class MainActivity extends FragmentActivity {
         
         runningInfo = findViewById(R.id.text);
         backgroundView = findViewById(R.id.background_view);
-        buttonContainer = findViewById(R.id.button_container);
-        
+
         currentBackgroundColor = pageColors[0];
         updateBackground(currentBackgroundColor);
 
@@ -173,8 +171,8 @@ public class MainActivity extends FragmentActivity {
         
         animateBackgroundColor(pageColors[colorIndex % pageColors.length]);
         
-        if (buttonContainer != null) {
-            buttonContainer.bringToFront();
+        if (viNextAction != null) {
+            viNextAction.bringToFront();
             viNextAction.setVisibility(View.VISIBLE);
         }
         if (viWifiFloat != null) viWifiFloat.bringToFront();
@@ -314,9 +312,9 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void actionNextVisible() {
-        if (buttonContainer != null) {
+        if (viNextAction != null) {
             viNextAction.setVisibility(View.VISIBLE);
-            buttonContainer.bringToFront();
+            viNextAction.bringToFront();
         }
     }
 
@@ -325,7 +323,7 @@ public class MainActivity extends FragmentActivity {
     }
 
     public void nextActionBringToFront() {
-        if (buttonContainer != null) buttonContainer.bringToFront();
+        if (viNextAction != null) viNextAction.bringToFront();
     }
 
     public void setNextActionText(String text) {
