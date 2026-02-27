@@ -25,32 +25,6 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- LAYER 3: Global Overlay Container for buttons -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/overlay_layer"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:elevation="100dp"
-        android:fitsSystemWindows="true">
-
-        <androidx.constraintlayout.widget.Guideline
-            android:id="@+id/guideline_actions"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            app:layout_constraintGuide_percent="0.65" />
-
-        <FrameLayout
-            android:id="@+id/button_container"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="@+id/guideline_actions"
-            android:padding="24dp" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
     <TextView
         android:id="@+id/text"
         android:layout_width="wrap_content"

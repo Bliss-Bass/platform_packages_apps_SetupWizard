@@ -103,24 +103,22 @@ public class MainActivity extends FragmentActivity {
         
         enableWifi();
         setHdmiCecComponentEnabled(PackageManager.COMPONENT_ENABLED_STATE_DISABLED);
-        
-        final View mainRoot = findViewById(R.id.main_root);
-        viWifiFloat = LayoutInflater.from(this).inflate(R.layout.view_wifi_float, (FrameLayout)findViewById(R.id.content_container), false);
-        tvWifiName = viWifiFloat.findViewById(R.id.tv_wifi_name);
-        
-        viNextAction = LayoutInflater.from(this).inflate(R.layout.view_next_action, buttonContainer, false);
-        FrameLayout.LayoutParams buttonParams = new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-        buttonParams.gravity = Gravity.CENTER;
-        viNextAction.setLayoutParams(buttonParams);
 
+        final FrameLayout contentGroup = findViewById(android.R.id.content);
+        viWifiFloat = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_wifi_float, contentGroup, false);
+        tvWifiName = viWifiFloat.findViewById(R.id.tv_wifi_name);
+        viNextAction = LayoutInflater.from(MainActivity.this).inflate(R.layout.view_next_action, contentGroup, false);
         viNextAction.setOnClickListener(view -> {
             BaseGuideStepFragment topFragment = getTopBaseGuideStepFragment();
             if (topFragment != null) {
                 topFragment.onNextAction();
             }
         });
-        
+        contentGroup.post(() -> {
+            contentGroup.addView(viNextAction);
+            contentGroup.addView(viWifiFloat);
+        });
+        /*
         mainRoot.post(() -> {
             if (buttonContainer != null) {
                 buttonContainer.removeAllViews();
@@ -130,8 +128,8 @@ public class MainActivity extends FragmentActivity {
             ((FrameLayout)findViewById(R.id.content_container)).addView(viWifiFloat);
             viWifiFloat.bringToFront();
         });
-
-        mainRoot.setOnTouchListener((v, event) -> {
+*/
+        contentGroup.setOnTouchListener((v, event) -> {
             if (event.getAction() == MotionEvent.ACTION_DOWN) {
                 float xThreshold = Math.max(v.getWidth() * 0.10f, 100f);
                 float yThreshold = Math.max(v.getHeight() * 0.10f, 100f);
