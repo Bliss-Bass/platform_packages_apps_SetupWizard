@@ -7,4 +7,10 @@
 
     <!-- Eliminate the gap between guidance and actions by removing the shadow width -->
     <dimen name="lb_guidedactions_section_shadow_width">0dp</dimen>
+
+    <!--
+      Sync the Leanback vertical guideline with the custom view_next_action guideline (0.58333333333).
+      This ensures the background split happens at the exact same position on every page.
+    -->
+    <item name="lb_guidedstep_guideline" format="float" type="dimen">0.58333333333</item>
 </resources>
