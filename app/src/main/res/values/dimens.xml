@@ -4,4 +4,7 @@
     <dimen name="guidance_content_padding_start">48dp</dimen>
     <dimen name="guidance_content_padding_top">48dp</dimen>
     <dimen name="guidance_content_padding_bottom">48dp</dimen>
+
+    <!-- Eliminate the gap between guidance and actions by removing the shadow width -->
+    <dimen name="lb_guidedactions_section_shadow_width">0dp</dimen>
 </resources>
