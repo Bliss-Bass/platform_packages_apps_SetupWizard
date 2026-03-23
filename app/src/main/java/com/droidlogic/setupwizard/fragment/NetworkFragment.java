@@ -477,7 +477,7 @@ public class NetworkFragment extends BaseGuideStepFragment {
     @Override
     public void onNextAction() {
         FragmentManager fm = getParentFragmentManager();
-        DateTimeFragment next = DateTimeFragment.newInstance(getSelectedActionPosition() - 1);
+        DateTimeFragment next = DateTimeFragment.newInstance(0);
         GuidedStepSupportFragment.add(fm, next);
     }
 

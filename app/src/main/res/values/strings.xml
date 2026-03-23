@@ -75,5 +75,10 @@
     <!-- Summary text for 3-button navigation  [CHAR LIMIT=NONE] -->
     <string name="legacy_navigation_summary">Go back, Home, and switch apps with buttons at the bottom of your screen.</string>
 
+    <!-- Age Verification -->
+    <string name="age_verification_title">Age Verification</string>
+    <string name="age_verification_description">To comply with California’s Digital Age Assurance Act (AB 1043), please indicate if the primary user is a minor. We do not store your birthdate and value your privacy.</string>
+    <string name="age_verification_adult">I am 18 or older</string>
+    <string name="age_verification_minor">I am under 18</string>
 
 </resources>

@@ -151,12 +151,39 @@ public class DateTimeFragment extends BaseGuideStepFragment {
 
     @Override
     public void onNextAction() {
-        GuidedStepSupportFragment.add(getParentFragmentManager(), new DisplaySettingsFragment());
+        if (shouldShowAgeVerification()) {
+            GuidedStepSupportFragment.add(getParentFragmentManager(), new AgeVerificationFragment());
+        } else {
+            GuidedStepSupportFragment.add(getParentFragmentManager(), new DisplaySettingsFragment());
+        }
+    }
+
+    private boolean shouldShowAgeVerification() {
+        String tzId = TimeZone.getDefault().getID();
+        // Check for California (Pacific Time) or Colorado (Mountain Time) timezones
+        // Common Olson IDs for these regions:
+        if (tzId.contains("Los_Angeles") || tzId.contains("Denver")) {
+            return true;
+        }
+
+        // Also check system property for network-based region if available
+        try {
+            Class<?> systemProperties = Class.forName("android.os.SystemProperties");
+            java.lang.reflect.Method getMethod = systemProperties.getMethod("get", String.class);
+            String region = (String) getMethod.invoke(null, "persist.sys.timezone"); // Or another prop like gsm.operator.iso-country
+            if (region != null && (region.contains("America/Los_Angeles") || region.contains("America/Denver"))) {
+                return true;
+            }
+        } catch (Exception e) {
+            Log.e("DateTimeFragment", "Region check failed", e);
+        }
+
+        return false;
     }
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
-        super.onGuidedActionClicked(action); // Handles ACTION_NEXT from BaseGuideStepFragment
+        super.onGuidedActionClicked(action);
         if (action.getId() == CONTINUE) {
             onNextAction();
         } else if (action.getId() == BACK) {
