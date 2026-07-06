@@ -27,6 +27,10 @@
     <string name="password_error">PASSWORD ERROR</string>
     <string name="network_setup">Network</string>
     <string name="network_description">Network configuration</string>
+    <string name="network_description_settings">Connect to Wi-Fi using system network settings. You can skip this step and configure Wi-Fi later.</string>
+    <string name="network_open_settings">Open network settings</string>
+    <string name="network_skip_wifi">Skip Wi-Fi</string>
+    <string name="network_settings_missing">Network settings are not available on this device</string>
     <string name="not_connected">Not connected</string>
     <string name="connected">Connected</string>
     <string name="network_type_ethernet">Ethernet</string>
