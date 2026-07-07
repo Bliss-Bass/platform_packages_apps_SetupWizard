@@ -2,8 +2,13 @@ package com.droidlogic.setupwizard.fragment;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.ConnectivityManager;
+import android.net.Network;
+import android.net.NetworkCapabilities;
+import android.net.NetworkRequest;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -34,9 +39,28 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     private static final String TAG = "NetworkFragment";
     private static final String STATE_SETTINGS_LAUNCHED = "settings_launched";
+    private static final int ID_ETHERNET = 21;
 
     private ActivityResultLauncher<Intent> networkSetupLauncher;
+    private GuidedAction ethernetGuidedAction;
     private boolean settingsLaunched;
+
+    private final ConnectivityManager.NetworkCallback networkCallback = new ConnectivityManager.NetworkCallback() {
+        @Override
+        public void onAvailable(@NonNull Network network) {
+            runOnUiThread(() -> updateEthernetStatus());
+        }
+
+        @Override
+        public void onLost(@NonNull Network network) {
+            runOnUiThread(() -> updateEthernetStatus());
+        }
+
+        @Override
+        public void onCapabilitiesChanged(@NonNull Network network, @NonNull NetworkCapabilities networkCapabilities) {
+            runOnUiThread(() -> updateEthernetStatus());
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -59,7 +83,30 @@ public class NetworkFragment extends BaseGuideStepFragment {
     public void onResume() {
         super.onResume();
         if (!settingsLaunched) {
+            settingsLaunched = true;
             startNetworkSetup();
+        }
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        ConnectivityManager cm = requireContext().getSystemService(ConnectivityManager.class);
+        if (cm != null) {
+            cm.registerNetworkCallback(
+                    new NetworkRequest.Builder()
+                            .addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET)
+                            .build(),
+                    networkCallback);
+        }
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        ConnectivityManager cm = requireContext().getSystemService(ConnectivityManager.class);
+        if (cm != null) {
+            cm.unregisterNetworkCallback(networkCallback);
         }
     }
 
@@ -74,6 +121,14 @@ public class NetworkFragment extends BaseGuideStepFragment {
 
     @Override
     public void onCreateActions(@NonNull List<GuidedAction> actions, Bundle savedInstanceState) {
+        ethernetGuidedAction = new GuidedAction.Builder(requireContext())
+                .id(ID_ETHERNET)
+                .title(getString(R.string.network_type_ethernet))
+                .description(getString(R.string.not_connected))
+                .enabled(false)
+                .build();
+        actions.add(ethernetGuidedAction);
+
         actions.add(new GuidedAction.Builder(requireContext())
                 .id(CONTINUE)
                 .title(getString(R.string.network_open_settings))
@@ -88,13 +143,22 @@ public class NetworkFragment extends BaseGuideStepFragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        updateEthernetStatus();
         actionNextVisible();
+    }
+
+    private void updateEthernetStatus() {
+        if (ethernetGuidedAction != null && isAdded()) {
+            boolean connected = SetupWizardUtils.isEthernetConnected(requireContext());
+            ethernetGuidedAction.setDescription(connected ? getString(R.string.connected) : getString(R.string.not_connected));
+            ethernetGuidedAction.setEnabled(connected);
+            notifyActionChanged(0);
+        }
     }
 
     @Override
     public void onGuidedActionClicked(GuidedAction action) {
         if (action.getId() == CONTINUE) {
-            settingsLaunched = false;
             startNetworkSetup();
         }
     }
@@ -146,12 +210,10 @@ public class NetworkFragment extends BaseGuideStepFragment {
         }
 
         if (data != null && data.getBooleanExtra("onBackPressed", false)) {
-            settingsLaunched = false;
             startNetworkSetup();
             return;
         }
 
-        settingsLaunched = false;
         actionNextVisible();
     }
 }

@@ -36,6 +36,7 @@ import com.droidlogic.setupwizard.fragment.LocalFragment;
 import com.droidlogic.setupwizard.fragment.NavigationFragment;
 import com.droidlogic.setupwizard.fragment.NetworkFragment;
 import com.droidlogic.setupwizard.utils.Backdoor;
+import com.droidlogic.setupwizard.utils.SetupWizardUtils;
 
 import java.util.List;
 
@@ -81,7 +82,7 @@ public class MainActivity extends FragmentActivity {
         currentBackgroundColor = pageColors[0];
         updateBackground(currentBackgroundColor);
 
-        if (Settings.Secure.getInt(getContentResolver(), USER_SETUP_COMPLETE, 0) == 1) {
+        if (SetupWizardUtils.isSetupWizardDisabled() || Settings.Secure.getInt(getContentResolver(), USER_SETUP_COMPLETE, 0) == 1) {
             try {
                 Thread.sleep(500);
             } catch (Exception e) {
