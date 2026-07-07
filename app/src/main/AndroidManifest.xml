@@ -45,8 +45,9 @@
             android:name=".MainActivity"
             android:excludeFromRecents="true"
             android:exported="true"
+            android:taskAffinity="com.android.wizard"
             android:windowSoftInputMode="adjustPan"
-            android:launchMode="singleInstance">
+            android:launchMode="singleTask">
             <intent-filter android:priority="9">
                 <action android:name="android.intent.action.MAIN" />
 

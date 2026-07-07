@@ -183,6 +183,8 @@ public class NetworkFragment extends BaseGuideStepFragment {
         }
 
         Intent intent = new Intent(NetworkSetupExtras.ACTION_SETUP_NETWORK);
+        intent.putExtra(NetworkSetupExtras.EXTRA_IS_FIRST_RUN, true);
+        intent.putExtra(NetworkSetupExtras.EXTRA_IS_SETUP_FLOW, true);
         intent.putExtra(NetworkSetupExtras.EXTRA_PREFS_SHOW_BUTTON_BAR, true);
         intent.putExtra(NetworkSetupExtras.EXTRA_PREFS_SHOW_SKIP, true);
         intent.putExtra(NetworkSetupExtras.EXTRA_PREFS_SHOW_SKIP_TV, true);

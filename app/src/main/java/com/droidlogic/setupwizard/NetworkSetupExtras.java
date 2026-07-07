@@ -14,6 +14,16 @@ public final class NetworkSetupExtras {
     public static final String EXTRA_PREFS_SET_BACK_TEXT = "extra_prefs_set_back_text";
     public static final String EXTRA_ENABLE_NEXT_ON_CONNECT = "wifi_enable_next_on_connect";
 
+    /**
+     * SetupWizard markers read by {@code WizardManagerHelper.isAnySetupWizard(Intent)} in
+     * setupcompat. Settings {@code NetworkProviderSettings} selects its Glif/SUW layout from the
+     * activity theme but decides {@code mIsInSetupWizard} from these intent extras. If they are
+     * absent the layout is Glif while {@code mIsInSetupWizard} is false, and the mismatch throws an
+     * NPE on the (null) footer button and progress views. Passing these keeps the two in sync.
+     */
+    public static final String EXTRA_IS_FIRST_RUN = "firstRun";
+    public static final String EXTRA_IS_SETUP_FLOW = "isSetupFlow";
+
     private NetworkSetupExtras() {
     }
 }
